@@ -20,7 +20,6 @@ const TRINO_SET_ROLE_HEADER = TRINO_HEADER_PREFIX + 'Set-Role';
 const TRINO_EXTRA_CREDENTIAL_HEADER = TRINO_HEADER_PREFIX + 'Extra-Credential';
 
 export class ConnectionOptions {
-  constructor(server: string, catalog?: string, schema?: string);
   constructor(
     readonly server?: string,
     readonly catalog?: string,
