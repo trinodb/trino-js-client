@@ -80,32 +80,6 @@ export type QueryResult = {
   warnings?: string[];
 };
 
-class Result {
-  constructor(
-    private readonly client: TrinoClient,
-    readonly queryResult: QueryResult
-  ) {}
-
-  async next(): Promise<Result> {
-    if (!this.queryResult.nextUri) {
-      return Promise.resolve(this);
-    }
-
-    const result = await this.client.request({url: this.queryResult.nextUri});
-    if (!result.data || result.data.length === 0) {
-      if (result.nextUri) {
-        return new Result(this.client, result).next();
-      }
-    }
-
-    return Promise.resolve(new Result(this.client, result));
-  }
-
-  async close(): Promise<Result> {
-    const resp = await this.client.cancel(this.queryResult.id);
-    return new Result(this.client, resp);
-  }
-}
 export type QueryInfo = {
   queryId: string;
   state: string;
@@ -126,7 +100,7 @@ class TrinoClient {
     });
   }
 
-  async request(cfg: AxiosRequestConfig<any>): Promise<QueryResult> {
+  async request<T>(cfg: AxiosRequestConfig<any>): Promise<T> {
     const request = this.underlying.request(cfg);
     return request.then(response => response.data);
   }
@@ -135,8 +109,49 @@ class TrinoClient {
     return this.request({method: 'POST', url: '/v1/statement', data: query});
   }
 
+  async queryInfo(queryId: string): Promise<QueryInfo> {
+    return this.request({url: `/v1/query/${queryId}`, method: 'GET'});
+  }
+
   async cancel(queryId: string): Promise<QueryResult> {
-    return this.request({url: `/v1/query/${queryId}`, method: 'DELETE'});
+    return this.request({url: `/v1/query/${queryId}`, method: 'DELETE'}).then(
+      _ => {
+        return {id: queryId};
+      }
+    );
+  }
+}
+
+class Result {
+  constructor(
+    private readonly client: TrinoClient,
+    readonly queryResult: QueryResult
+  ) {}
+
+  hasNext(): boolean {
+    return !!this.queryResult.nextUri;
+  }
+
+  async next(): Promise<Result> {
+    if (!this.queryResult.nextUri) {
+      return Promise.resolve(this);
+    }
+
+    const result = await this.client.request<QueryResult>({
+      url: this.queryResult.nextUri,
+    });
+    if (!result.data || result.data.length === 0) {
+      if (result.nextUri) {
+        return new Result(this.client, result).next();
+      }
+    }
+
+    return Promise.resolve(new Result(this.client, result));
+  }
+
+  async close(): Promise<Result> {
+    const resp = await this.client.cancel(this.queryResult.id);
+    return new Result(this.client, resp);
   }
 }
 
@@ -149,6 +164,10 @@ export class Trino {
 
   async query(query: string): Promise<Result> {
     return this.client.query(query).then(resp => new Result(this.client, resp));
+  }
+
+  async queryInfo(query: string): Promise<QueryInfo> {
+    return this.client.queryInfo(query);
   }
 
   async cancel(queryId: string): Promise<Result> {
