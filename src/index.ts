@@ -122,9 +122,21 @@ class Client {
 
 class Result {
   constructor(
-    readonly queryResult: QueryResult
     private readonly client: Client,
+    private readonly queryResult: QueryResult
   ) {}
+
+  get queryId(): string {
+    return this.queryResult.id;
+  }
+
+  get columns(): {name: string; type: string}[] {
+    return this.queryResult.columns ?? [];
+  }
+
+  get data(): any[][] {
+    return this.queryResult.data ?? [];
+  }
 
   hasNext(): boolean {
     return !!this.queryResult.nextUri;
