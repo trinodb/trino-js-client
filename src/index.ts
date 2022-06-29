@@ -19,7 +19,7 @@ const TRINO_CLEAR_SESSION_HEADER = TRINO_HEADER_PREFIX + 'Clear-Session';
 const TRINO_SET_ROLE_HEADER = TRINO_HEADER_PREFIX + 'Set-Role';
 const TRINO_EXTRA_CREDENTIAL_HEADER = TRINO_HEADER_PREFIX + 'Extra-Credential';
 
-type ConnectionOptions = {
+export type ConnectionOptions = {
   readonly server?: string;
   readonly catalog?: string;
   readonly schema?: string;
@@ -27,7 +27,7 @@ type ConnectionOptions = {
   readonly password?: string;
 };
 
-type QueryStage = {
+export type QueryStage = {
   stageId: string;
   state: string;
   done: boolean;
@@ -46,7 +46,7 @@ type QueryStage = {
   subStages: QueryStage[];
 };
 
-type QueryStats = {
+export type QueryStats = {
   state: string;
   queued: boolean;
   scheduled: boolean;
