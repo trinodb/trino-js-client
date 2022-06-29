@@ -106,6 +106,10 @@ class Result {
     return new Result(this.client, resp);
   }
 }
+export type QueryInfo = {
+  queryId: string;
+  state: string;
+};
 
 class TrinoClient {
   private readonly underlying: AxiosInstance;
