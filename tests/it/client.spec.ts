@@ -15,7 +15,7 @@ describe('trino', () => {
     try {
       while (stmt.hasNext()) {
         stmt = await stmt.next();
-        data = data.concat(stmt.queryResult.data ?? []);
+        data = data.concat(stmt.data);
       }
     } finally {
       await stmt.close();
@@ -31,7 +31,7 @@ describe('trino', () => {
     stmt = await stmt.next();
     stmt = await stmt.close();
 
-    const info = await trino.queryInfo(stmt.queryResult.id);
+    const info = await trino.queryInfo(stmt.queryId);
 
     expect(info.state).toBe('FAILED');
   });
@@ -40,8 +40,8 @@ describe('trino', () => {
     let stmt = await trino.query(queryAll);
     stmt = await stmt.next();
 
-    stmt = await trino.cancel(stmt.queryResult.id);
-    const info = await trino.queryInfo(stmt.queryResult.id);
+    stmt = await trino.cancel(stmt.queryId);
+    const info = await trino.queryInfo(stmt.queryId);
 
     expect(info.state).toBe('FAILED');
   });
@@ -50,7 +50,7 @@ describe('trino', () => {
     let stmt = await trino.query(query);
     stmt = await stmt.next();
 
-    const info = await trino.queryInfo(stmt.queryResult.id);
+    const info = await trino.queryInfo(stmt.queryId);
     expect(info.state).toBe('FINISHED');
 
     stmt = await stmt.close();
