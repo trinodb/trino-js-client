@@ -83,7 +83,7 @@ export type QueryInfo = {
   state: string;
 };
 
-class TrinoClient {
+class Client {
   private readonly underlying: AxiosInstance;
 
   constructor(private readonly options: ConnectionOptions) {
@@ -122,8 +122,8 @@ class TrinoClient {
 
 class Result {
   constructor(
-    private readonly client: TrinoClient,
     readonly queryResult: QueryResult
+    private readonly client: Client,
   ) {}
 
   hasNext(): boolean {
@@ -154,10 +154,10 @@ class Result {
 }
 
 export class Trino {
-  private readonly client: TrinoClient;
+  private readonly client: Client;
 
   constructor(private readonly options: ConnectionOptions) {
-    this.client = new TrinoClient(options);
+    this.client = new Client(options);
   }
 
   async query(query: string): Promise<Result> {
