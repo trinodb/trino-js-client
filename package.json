@@ -19,7 +19,7 @@
   },
   "scripts": {
     "compile": "tsc",
-    "test": "jest",
+    "test:it": "jest --testPathPattern tests/it",
     "lint": "eslint ."
   }
 }
