@@ -20,6 +20,6 @@
   "scripts": {
     "compile": "tsc",
     "test:it": "jest --testPathPattern tests/it",
-    "lint": "eslint ."
+    "test:lint": "eslint ."
   }
 }
