@@ -1,6 +1,6 @@
 import axios, {AxiosInstance, AxiosRequestConfig} from 'axios';
 
-const DEFAULT_SERVER = 'localhost:8080';
+const DEFAULT_SERVER = 'http://localhost:8080';
 
 // Trino headers
 const TRINO_HEADER_PREFIX = 'X-Trino-';
