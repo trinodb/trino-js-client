@@ -121,7 +121,7 @@ class Client {
 class Result {
   constructor(
     private readonly client: Client,
-    private readonly queryResult: QueryResult
+    private queryResult: QueryResult
   ) {}
 
   get queryId(): string {
@@ -142,24 +142,26 @@ class Result {
 
   async next(): Promise<Result> {
     if (!this.queryResult.nextUri) {
-      return Promise.resolve(this);
+      return this;
     }
 
-    const result = await this.client.request<QueryResult>({
+    this.queryResult = await this.client.request<QueryResult>({
       url: this.queryResult.nextUri,
     });
-    if (!result.data || result.data.length === 0) {
-      if (result.nextUri) {
-        return new Result(this.client, result).next();
+
+    const data = this.queryResult.data ?? [];
+    if (data.length === 0) {
+      if (this.queryResult.nextUri) {
+        return this.next();
       }
     }
 
-    return Promise.resolve(new Result(this.client, result));
+    return this;
   }
 
   async close(): Promise<Result> {
-    const resp = await this.client.cancel(this.queryResult.id);
-    return new Result(this.client, resp);
+    this.queryResult = await this.client.cancel(this.queryResult.id);
+    return this;
   }
 }
 
