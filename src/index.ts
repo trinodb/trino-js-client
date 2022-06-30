@@ -124,25 +124,13 @@ class Result {
     private queryResult: QueryResult
   ) {}
 
-  get queryId(): string {
-    return this.queryResult.id;
-  }
-
-  get columns(): {name: string; type: string}[] {
-    return this.queryResult.columns ?? [];
-  }
-
-  get data(): any[][] {
-    return this.queryResult.data ?? [];
-  }
-
   hasNext(): boolean {
     return !!this.queryResult.nextUri;
   }
 
-  async next(): Promise<Result> {
+  async next(): Promise<QueryResult> {
     if (!this.queryResult.nextUri) {
-      return this;
+      return this.queryResult;
     }
 
     this.queryResult = await this.client.request<QueryResult>({
@@ -156,12 +144,34 @@ class Result {
       }
     }
 
-    return this;
+    return this.queryResult;
   }
 
-  async close(): Promise<Result> {
+  async close(): Promise<QueryResult> {
     this.queryResult = await this.client.cancel(this.queryResult.id);
-    return this;
+    return this.queryResult;
+  }
+
+  async forEach(fn: (row: QueryResult) => void): Promise<void> {
+    try {
+      while (this.hasNext()) {
+        await this.next();
+        fn(this.queryResult);
+      }
+    } finally {
+      await this.close();
+    }
+  }
+
+  async map<T>(fn: (row: QueryResult) => T): Promise<T[]> {
+    const result: T[] = [];
+    await this.forEach(row => result.push(fn(row)));
+    return result;
+  }
+
+  async fold<T>(acc: T, fn: (row: QueryResult, acc: T) => T): Promise<T> {
+    await this.forEach(row => (acc = fn(row, acc)));
+    return acc;
   }
 }
 
