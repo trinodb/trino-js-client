@@ -11,8 +11,6 @@ describe('trino', () => {
   const query = `select * from customer limit ${limit}`;
 
   test('exhaust query results', async () => {
-    expect.assertions(1);
-
     const stmt = await trino.query(query);
     const data = await stmt.fold<any[]>([], (row, acc) => [
       ...acc,
@@ -23,8 +21,6 @@ describe('trino', () => {
   });
 
   test('close running query', async () => {
-    expect.assertions(1);
-
     const stmt = await trino.query(queryAll);
     const qr = await stmt.next();
     await stmt.close();
