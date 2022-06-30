@@ -10,16 +10,10 @@ describe('trino', () => {
     expect.assertions(1);
 
     const stmt = await trino.query(query);
-    let data: any[] = [];
-
-    try {
-      while (stmt.hasNext()) {
-        await stmt.next();
-        data = data.concat(stmt.data);
-      }
-    } finally {
-      await stmt.close();
-    }
+    const data = await stmt.fold<any[]>([], (row, acc) => [
+      ...acc,
+      ...(row.data ?? []),
+    ]);
 
     expect(data).toHaveLength(limit);
   });
@@ -28,29 +22,29 @@ describe('trino', () => {
     expect.assertions(1);
 
     const stmt = await trino.query(queryAll);
-    await stmt.next();
+    const qr = await stmt.next();
     await stmt.close();
 
-    const info = await trino.queryInfo(stmt.queryId);
+    const info = await trino.queryInfo(qr.id);
 
     expect(info.state).toBe('FAILED');
   });
 
   test('cancel running query', async () => {
     const stmt = await trino.query(queryAll);
-    await stmt.next();
+    const qr = await stmt.next();
 
-    await trino.cancel(stmt.queryId);
-    const info = await trino.queryInfo(stmt.queryId);
+    await trino.cancel(qr.id);
+    const info = await trino.queryInfo(qr.id);
 
     expect(info.state).toBe('FAILED');
   });
 
   test('get query info', async () => {
     const stmt = await trino.query(query);
-    await stmt.next();
+    const qr = await stmt.next();
 
-    const info = await trino.queryInfo(stmt.queryId);
+    const info = await trino.queryInfo(qr.id);
     expect(info.state).toBe('FINISHED');
 
     await stmt.close();
