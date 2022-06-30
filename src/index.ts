@@ -81,6 +81,7 @@ export type QueryResult = {
 export type QueryInfo = {
   queryId: string;
   state: string;
+  query: string,
 };
 
 class Client {

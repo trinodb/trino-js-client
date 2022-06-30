@@ -43,10 +43,10 @@ describe('trino', () => {
   test('get query info', async () => {
     const stmt = await trino.query(query);
     const qr = await stmt.next();
+    await stmt.close();
 
     const info = await trino.queryInfo(qr.id);
     expect(info.state).toBe('FINISHED');
-
-    await stmt.close();
+    expect(info.query).toBe(query);
   });
 });
