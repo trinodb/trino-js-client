@@ -113,9 +113,7 @@ class Client {
 
   async cancel(queryId: string): Promise<QueryResult> {
     return this.request({url: `/v1/query/${queryId}`, method: 'DELETE'}).then(
-      _ => {
-        return {id: queryId};
-      }
+      _ => <QueryResult>{id: queryId}
     );
   }
 }
