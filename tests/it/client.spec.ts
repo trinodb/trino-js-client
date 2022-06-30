@@ -1,10 +1,14 @@
 import {Trino} from '../../src';
 
 describe('trino', () => {
-  const trino = new Trino({});
-  const queryAll = 'select * from tpcds.sf100000.customer';
+  const trino = new Trino({
+    catalog: 'tpcds',
+    schema: 'sf100000',
+    user: 'test',
+  });
+  const queryAll = 'select * from customer';
   const limit = 1;
-  const query = `select * from tpcds.sf100000.customer limit ${limit}`;
+  const query = `select * from customer limit ${limit}`;
 
   test('exhaust query results', async () => {
     expect.assertions(1);
