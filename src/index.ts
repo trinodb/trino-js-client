@@ -25,6 +25,7 @@ export type ConnectionOptions = {
   readonly schema?: string;
   readonly user?: string;
   readonly password?: string;
+  readonly session?: string;
 };
 
 export type QueryStage = {
@@ -81,14 +82,14 @@ export type QueryResult = {
 export type QueryInfo = {
   queryId: string;
   state: string;
-  query: string,
+  query: string;
 };
 
 class Client {
-  private readonly underlying: AxiosInstance;
+  private clientConfig: AxiosRequestConfig;
 
   constructor(private readonly options: ConnectionOptions) {
-    this.underlying = axios.create({
+    this.clientConfig = {
       baseURL: options.server ?? DEFAULT_SERVER,
       headers: {
         [TRINO_USER_HEADER]: options.user ?? process.env.USER ?? '',
@@ -96,12 +97,36 @@ class Client {
         [TRINO_CATALOG_HEADER]: options.catalog ?? '',
         [TRINO_SCHEMA_HEADER]: options.schema ?? '',
       },
-    });
+    };
   }
 
   async request<T>(cfg: AxiosRequestConfig<any>): Promise<T> {
-    const request = this.underlying.request(cfg);
-    return request.then(response => response.data);
+    return axios
+      .create(this.clientConfig)
+      .request(cfg)
+      .then(response => {
+        const reqHeaders = this.clientConfig.headers ?? {};
+        const respHeaders = response.headers;
+        reqHeaders[TRINO_CATALOG_HEADER] =
+          respHeaders[TRINO_SET_CATALOG_HEADER.toLowerCase()] ??
+          this.options.catalog ??
+          reqHeaders[TRINO_CATALOG_HEADER] ??
+          '';
+        reqHeaders[TRINO_SCHEMA_HEADER] =
+          respHeaders[TRINO_SET_SCHEMA_HEADER.toLowerCase()] ??
+          this.options.schema ??
+          reqHeaders[TRINO_SCHEMA_HEADER] ??
+          '';
+        reqHeaders[TRINO_SESSION_HEADER] =
+          respHeaders[TRINO_SET_SESSION_HEADER.toLowerCase()] ??
+          reqHeaders[TRINO_SESSION_HEADER] ??
+          this.options.session ??
+          '';
+
+        this.clientConfig.headers = reqHeaders;
+
+        return response.data;
+      });
   }
 
   async query(query: string): Promise<QueryResult> {
