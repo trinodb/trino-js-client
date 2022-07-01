@@ -28,6 +28,6 @@
     "compile": "tsc",
     "test:it": "jest --testPathPattern tests/it",
     "test:lint": "eslint .",
-    "publish": "yarn npm publish"
+    "publish": "npm publish"
   }
 }
