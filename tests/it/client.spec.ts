@@ -1,17 +1,23 @@
-import {Trino} from '../../src';
+import { Trino } from '../../src';
 
-describe('trino', () => {
-  const trino = new Trino({
+let trino: Trino;
+const allCustomerQuery = 'select * from customer';
+const limit = 1;
+const singleCustomerQuery = `select * from customer limit ${limit}`;
+const useSchemaQuery = 'use tpcds.sf100000';
+
+beforeEach(() => {
+  trino = new Trino({
     catalog: 'tpcds',
     schema: 'sf100000',
     user: 'test',
   });
-  const queryAll = 'select * from customer';
-  const limit = 1;
-  const query = `select * from customer limit ${limit}`;
+});
+
+describe('trino', () => {
 
   test('exhaust query results', async () => {
-    const stmt = await trino.query(query);
+    const stmt = await trino.query(singleCustomerQuery);
     const data = await stmt.fold<any[]>([], (row, acc) => [
       ...acc,
       ...(row.data ?? []),
@@ -21,7 +27,7 @@ describe('trino', () => {
   });
 
   test('close running query', async () => {
-    const stmt = await trino.query(queryAll);
+    const stmt = await trino.query(allCustomerQuery);
     const qr = await stmt.next();
     await stmt.close();
 
@@ -31,7 +37,7 @@ describe('trino', () => {
   });
 
   test('cancel running query', async () => {
-    const stmt = await trino.query(queryAll);
+    const stmt = await trino.query(allCustomerQuery);
     const qr = await stmt.next();
 
     await trino.cancel(qr.id);
@@ -41,12 +47,27 @@ describe('trino', () => {
   });
 
   test('get query info', async () => {
-    const stmt = await trino.query(query);
+    const stmt = await trino.query(singleCustomerQuery);
     const qr = await stmt.next();
     await stmt.close();
 
     const info = await trino.queryInfo(qr.id);
     expect(info.state).toBe('FINISHED');
-    expect(info.query).toBe(query);
+    expect(info.query).toBe(singleCustomerQuery);
+  });
+
+  test('query request header propagation', async () => {
+    trino = new Trino({ catalog: 'tpcds', user: 'test' });
+    const stmt = await trino.query(useSchemaQuery);
+    await stmt.next();
+    await stmt.close();
+
+    const sqr = await trino.query(singleCustomerQuery);
+    const qr = await sqr.next();
+    await sqr.close();
+
+    const info = await trino.queryInfo(qr.id);
+    expect(info.state).toBe('FINISHED');
+    expect(info.query).toBe(singleCustomerQuery);
   });
 });
