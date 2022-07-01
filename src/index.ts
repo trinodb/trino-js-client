@@ -97,6 +97,13 @@ export type QueryInfo = {
   query: string;
 };
 
+export type QueryRequest = {
+  query: string;
+  session?: string;
+  catalog?: string;
+  schema?: string;
+};
+
 class Client {
   private clientConfig: AxiosRequestConfig;
 
@@ -153,8 +160,28 @@ class Client {
       });
   }
 
-  async query(query: string): Promise<QueryResult> {
-    return this.request({method: 'POST', url: '/v1/statement', data: query});
+  async query(query: QueryRequest | string): Promise<QueryResult> {
+    const req = typeof query === 'string' ? {query} : query;
+    const headers: {[key: string]: string} = {};
+    const catalog = req.catalog ?? this.options.catalog;
+    if (catalog) {
+      headers[TRINO_CATALOG_HEADER] = catalog;
+    }
+    const schema = req.schema ?? this.options.schema;
+    if (schema) {
+      headers[TRINO_SCHEMA_HEADER] = schema;
+    }
+    const session = req.session ?? this.options.session;
+    if (session) {
+      headers[TRINO_SESSION_HEADER] = session;
+    }
+
+    return this.request({
+      method: 'POST',
+      url: '/v1/statement',
+      data: req.query,
+      headers: headers,
+    });
   }
 
   async queryInfo(queryId: string): Promise<QueryInfo> {
@@ -232,7 +259,7 @@ export class Trino {
     this.client = new Client(options);
   }
 
-  async query(query: string): Promise<Query> {
+  async query(query: QueryRequest | string): Promise<Query> {
     return this.client.query(query).then(resp => new Query(this.client, resp));
   }
 
