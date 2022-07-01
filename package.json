@@ -3,11 +3,16 @@
   "version": "0.1.0",
   "author": {
     "name": "Filipe Regadas",
-    "email": "oss@regadas.email"
+    "email": "oss@regadas.email",
+    "url": "https://regadas.dev"
   },
-  "main": "./dist/src/index.js",
-  "types": "./dist/src/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "packageManager": "yarn@3.2.1",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
     "@types/jest": "^28.1.3",
     "@types/node": "^18.0.0",
@@ -25,7 +30,7 @@
     "axios": "^0.27.2"
   },
   "scripts": {
-    "compile": "tsc",
+    "build": "tsc --project tsconfig.build.json",
     "test:it": "jest --testPathPattern tests/it",
     "test:lint": "eslint .",
     "publish": "npm publish"
