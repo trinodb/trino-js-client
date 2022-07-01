@@ -78,12 +78,15 @@ export type QueryStats = {
   progressPercentage: number;
 };
 
+export type Columns = {name: string; type: string}[];
+export type QueryData = any[];
+
 export type QueryResult = {
   id: string;
   infoUri?: string;
   nextUri?: string;
-  columns?: {name: string; type: string}[];
-  data?: any[][];
+  columns?: Columns;
+  data?: QueryData[];
   stats?: QueryStats;
   warnings?: string[];
 };
