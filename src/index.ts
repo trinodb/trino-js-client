@@ -165,7 +165,7 @@ class Client {
   }
 }
 
-class Result {
+class Query {
   constructor(
     private readonly client: Client,
     private queryResult: QueryResult
@@ -229,17 +229,15 @@ export class Trino {
     this.client = new Client(options);
   }
 
-  async query(query: string): Promise<Result> {
-    return this.client.query(query).then(resp => new Result(this.client, resp));
+  async query(query: string): Promise<Query> {
+    return this.client.query(query).then(resp => new Query(this.client, resp));
   }
 
   async queryInfo(query: string): Promise<QueryInfo> {
     return this.client.queryInfo(query);
   }
 
-  async cancel(queryId: string): Promise<Result> {
-    return this.client
-      .cancel(queryId)
-      .then(resp => new Result(this.client, resp));
+  async cancel(queryId: string): Promise<QueryResult> {
+    return this.client.cancel(queryId);
   }
 }
