@@ -1,4 +1,4 @@
-import {BasicAuth, Trino} from '../../src';
+import {BasicAuth, QueryData, Trino} from '../../src';
 
 let trino: Trino;
 const allCustomerQuery = 'select * from customer';
@@ -17,7 +17,7 @@ beforeEach(() => {
 describe('trino', () => {
   test('exhaust query results', async () => {
     const query = await trino.query(singleCustomerQuery);
-    const data = await query.fold<any[]>([], (row, acc) => [
+    const data = await query.fold<QueryData[]>([], (row, acc) => [
       ...acc,
       ...(row.data ?? []),
     ]);
