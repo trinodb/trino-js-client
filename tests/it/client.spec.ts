@@ -16,8 +16,8 @@ beforeEach(() => {
 
 describe('trino', () => {
   test('exhaust query results', async () => {
-    const stmt = await trino.query(singleCustomerQuery);
-    const data = await stmt.fold<any[]>([], (row, acc) => [
+    const query = await trino.query(singleCustomerQuery);
+    const data = await query.fold<any[]>([], (row, acc) => [
       ...acc,
       ...(row.data ?? []),
     ]);
@@ -26,9 +26,9 @@ describe('trino', () => {
   });
 
   test('close running query', async () => {
-    const stmt = await trino.query(allCustomerQuery);
-    const qr = await stmt.next();
-    await stmt.close();
+    const query = await trino.query(allCustomerQuery);
+    const qr = await query.next();
+    await query.close();
 
     const info = await trino.queryInfo(qr.id);
 
@@ -36,8 +36,8 @@ describe('trino', () => {
   });
 
   test('cancel running query', async () => {
-    const stmt = await trino.query(allCustomerQuery);
-    const qr = await stmt.next();
+    const query = await trino.query(allCustomerQuery);
+    const qr = await query.next();
 
     await trino.cancel(qr.id);
     const info = await trino.queryInfo(qr.id);
@@ -46,9 +46,9 @@ describe('trino', () => {
   });
 
   test('get query info', async () => {
-    const stmt = await trino.query(singleCustomerQuery);
-    const qr = await stmt.next();
-    await stmt.close();
+    const query = await trino.query(singleCustomerQuery);
+    const qr = await query.next();
+    await query.close();
 
     const info = await trino.queryInfo(qr.id);
     expect(info.state).toBe('FINISHED');
@@ -57,9 +57,9 @@ describe('trino', () => {
 
   test('query request header propagation', async () => {
     trino = new Trino({catalog: 'tpcds', auth: new BasicAuth('test')});
-    const stmt = await trino.query(useSchemaQuery);
-    await stmt.next();
-    await stmt.close();
+    const query = await trino.query(useSchemaQuery);
+    await query.next();
+    await query.close();
 
     const sqr = await trino.query(singleCustomerQuery);
     const qr = await sqr.next();
