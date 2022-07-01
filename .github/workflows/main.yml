@@ -11,4 +11,4 @@ jobs:
       - name: Lint
         run: yarn test:lint
       - name: Build
-        run: yarn compile
+        run: yarn build
