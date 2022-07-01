@@ -1,4 +1,4 @@
-import axios, {AxiosInstance, AxiosRequestConfig} from 'axios';
+import axios, {AxiosRequestConfig} from 'axios';
 
 const DEFAULT_SERVER = 'http://localhost:8080';
 
