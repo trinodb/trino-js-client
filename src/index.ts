@@ -19,12 +19,21 @@ const TRINO_CLEAR_SESSION_HEADER = TRINO_HEADER_PREFIX + 'Clear-Session';
 const TRINO_SET_ROLE_HEADER = TRINO_HEADER_PREFIX + 'Set-Role';
 const TRINO_EXTRA_CREDENTIAL_HEADER = TRINO_HEADER_PREFIX + 'Extra-Credential';
 
+export interface Auth {
+  readonly type: string;
+}
+
+export class BasicAuth implements Auth {
+  readonly type: string = 'basic';
+  constructor(username: string);
+  constructor(readonly username: string, readonly password?: string) {}
+}
+
 export type ConnectionOptions = {
   readonly server?: string;
   readonly catalog?: string;
   readonly schema?: string;
-  readonly user?: string;
-  readonly password?: string;
+  readonly auth?: Auth;
   readonly session?: string;
 };
 
@@ -92,12 +101,24 @@ class Client {
     this.clientConfig = {
       baseURL: options.server ?? DEFAULT_SERVER,
       headers: {
-        [TRINO_USER_HEADER]: options.user ?? process.env.USER ?? '',
+        [TRINO_USER_HEADER]: process.env.USER ?? '',
         [TRINO_SOURCE_HEADER]: 'trino-js-client',
         [TRINO_CATALOG_HEADER]: options.catalog ?? '',
         [TRINO_SCHEMA_HEADER]: options.schema ?? '',
       },
     };
+
+    if (options.auth && options.auth.type === 'basic') {
+      const basic: BasicAuth = <BasicAuth>options.auth;
+      this.clientConfig.auth = {
+        username: basic.username,
+        password: basic.password ?? '',
+      };
+
+      const headers = this.clientConfig.headers ?? {};
+      headers[TRINO_USER_HEADER] = basic.username;
+      this.clientConfig.headers = headers;
+    }
   }
 
   async request<T>(cfg: AxiosRequestConfig<any>): Promise<T> {

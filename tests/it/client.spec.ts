@@ -1,4 +1,4 @@
-import { Trino } from '../../src';
+import {BasicAuth, Trino} from '../../src';
 
 let trino: Trino;
 const allCustomerQuery = 'select * from customer';
@@ -10,12 +10,11 @@ beforeEach(() => {
   trino = new Trino({
     catalog: 'tpcds',
     schema: 'sf100000',
-    user: 'test',
+    auth: new BasicAuth('test'),
   });
 });
 
 describe('trino', () => {
-
   test('exhaust query results', async () => {
     const stmt = await trino.query(singleCustomerQuery);
     const data = await stmt.fold<any[]>([], (row, acc) => [
@@ -57,7 +56,7 @@ describe('trino', () => {
   });
 
   test('query request header propagation', async () => {
-    trino = new Trino({ catalog: 'tpcds', user: 'test' });
+    trino = new Trino({catalog: 'tpcds', auth: new BasicAuth('test')});
     const stmt = await trino.query(useSchemaQuery);
     await stmt.next();
     await stmt.close();
