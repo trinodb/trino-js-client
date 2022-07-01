@@ -1,5 +1,12 @@
 {
   "name": "trino-client",
+  "version": "0.1.0",
+  "author": {
+    "name": "Filipe Regadas",
+    "email": "oss@regadas.email"
+  },
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
   "packageManager": "yarn@3.2.1",
   "devDependencies": {
     "@types/jest": "^28.1.3",
@@ -20,6 +27,7 @@
   "scripts": {
     "compile": "tsc",
     "test:it": "jest --testPathPattern tests/it",
-    "test:lint": "eslint ."
+    "test:lint": "eslint .",
+    "publish": "yarn npm publish"
   }
 }
