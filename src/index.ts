@@ -97,7 +97,7 @@ export type QueryInfo = {
   query: string;
 };
 
-export type QueryRequest = {
+export type Query = {
   query: string;
   session?: string;
   catalog?: string;
@@ -160,7 +160,7 @@ class Client {
       });
   }
 
-  async query(query: QueryRequest | string): Promise<QueryResult> {
+  async query(query: Query | string): Promise<QueryResult> {
     const req = typeof query === 'string' ? {query} : query;
     const headers: {[key: string]: string} = {};
     const catalog = req.catalog ?? this.options.catalog;
@@ -195,7 +195,7 @@ class Client {
   }
 }
 
-class Query {
+class QueryIterator {
   constructor(
     private readonly client: Client,
     private queryResult: QueryResult
@@ -259,8 +259,10 @@ export class Trino {
     this.client = new Client(options);
   }
 
-  async query(query: QueryRequest | string): Promise<Query> {
-    return this.client.query(query).then(resp => new Query(this.client, resp));
+  async query(query: Query | string): Promise<QueryIterator> {
+    return this.client
+      .query(query)
+      .then(resp => new QueryIterator(this.client, resp));
   }
 
   async queryInfo(query: string): Promise<QueryInfo> {
