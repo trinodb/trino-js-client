@@ -29,12 +29,23 @@ export class BasicAuth implements Auth {
   constructor(readonly username: string, readonly password?: string) {}
 }
 
+export type Session = {[key: string]: string};
+
+export type ExtraCredential = {[key: string]: string};
+
+const encodeAsString = (obj: {[key: string]: string}) => {
+  return Object.entries(obj)
+    .map(([key, value]) => `${key}=${value}`)
+    .join(',');
+};
+
 export type ConnectionOptions = {
   readonly server?: string;
   readonly catalog?: string;
   readonly schema?: string;
   readonly auth?: Auth;
-  readonly session?: string;
+  readonly session?: Session;
+  readonly extraCredential?: ExtraCredential;
 };
 
 export type QueryStage = {
@@ -79,6 +90,7 @@ export type QueryStats = {
 };
 
 export type Columns = {name: string; type: string}[];
+
 export type QueryData = any[];
 
 export type QueryResult = {
@@ -99,9 +111,11 @@ export type QueryInfo = {
 
 export type Query = {
   query: string;
-  session?: string;
   catalog?: string;
   schema?: string;
+  user?: string;
+  session?: Session;
+  extraCredential?: ExtraCredential;
 };
 
 class Client {
@@ -115,6 +129,10 @@ class Client {
         [TRINO_SOURCE_HEADER]: 'trino-js-client',
         [TRINO_CATALOG_HEADER]: options.catalog ?? '',
         [TRINO_SCHEMA_HEADER]: options.schema ?? '',
+        [TRINO_SESSION_HEADER]: encodeAsString(options.session ?? {}),
+        [TRINO_EXTRA_CREDENTIAL_HEADER]: encodeAsString(
+          options.extraCredential ?? {}
+        ),
       },
     };
 
@@ -163,17 +181,22 @@ class Client {
   async query(query: Query | string): Promise<QueryResult> {
     const req = typeof query === 'string' ? {query} : query;
     const headers: {[key: string]: string} = {};
-    const catalog = req.catalog ?? this.options.catalog;
-    if (catalog) {
-      headers[TRINO_CATALOG_HEADER] = catalog;
+    if (req.user) {
+      headers[TRINO_USER_HEADER] = req.user;
     }
-    const schema = req.schema ?? this.options.schema;
-    if (schema) {
-      headers[TRINO_SCHEMA_HEADER] = schema;
+    if (req.catalog) {
+      headers[TRINO_CATALOG_HEADER] = req.catalog;
     }
-    const session = req.session ?? this.options.session;
-    if (session) {
-      headers[TRINO_SESSION_HEADER] = session;
+    if (req.schema) {
+      headers[TRINO_SCHEMA_HEADER] = req.schema;
+    }
+    if (req.session) {
+      headers[TRINO_SESSION_HEADER] = encodeAsString(req.session);
+    }
+    if (req.extraCredential) {
+      headers[TRINO_EXTRA_CREDENTIAL_HEADER] = encodeAsString(
+        req.extraCredential
+      );
     }
 
     return this.request({
