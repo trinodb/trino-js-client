@@ -6,6 +6,7 @@ A [Trino](https://trino.io) client for [Node.js](https://nodejs.org/).
 
 - Connections over HTTP or HTTPS
 - Supports HTTP Basic Authentication
+- Per-query user information for access control
 
 ## Requirements
 
