@@ -1,6 +1,8 @@
 import axios, {AxiosRequestConfig} from 'axios';
 
 const DEFAULT_SERVER = 'http://localhost:8080';
+const DEFAULT_SOURCE = 'trino-js-client';
+const DEFAULT_USER = process.env.USER;
 
 // Trino headers
 const TRINO_HEADER_PREFIX = 'X-Trino-';
@@ -41,6 +43,7 @@ const encodeAsString = (obj: {[key: string]: string}) => {
 
 export type ConnectionOptions = {
   readonly server?: string;
+  readonly source?: string;
   readonly catalog?: string;
   readonly schema?: string;
   readonly auth?: Auth;
@@ -118,22 +121,35 @@ export type Query = {
   extraCredential?: ExtraCredential;
 };
 
+type Headers = {
+  [key: string]: string | number | boolean | undefined;
+};
+
+const cleanHeaders = (headers: Headers) => {
+  const sanitizedHeaders: {[key: string]: string | number | boolean} = {};
+  for (const [key, value] of Object.entries(headers)) {
+    if (value) {
+      sanitizedHeaders[key] = value;
+    }
+  }
+  return sanitizedHeaders;
+};
+
 class Client {
   private clientConfig: AxiosRequestConfig;
 
   constructor(private readonly options: ConnectionOptions) {
-    this.clientConfig = {
-      baseURL: options.server ?? DEFAULT_SERVER,
-      headers: {
-        [TRINO_USER_HEADER]: process.env.USER ?? '',
-        [TRINO_SOURCE_HEADER]: 'trino-js-client',
-        [TRINO_CATALOG_HEADER]: options.catalog ?? '',
-        [TRINO_SCHEMA_HEADER]: options.schema ?? '',
-        [TRINO_SESSION_HEADER]: encodeAsString(options.session ?? {}),
-        [TRINO_EXTRA_CREDENTIAL_HEADER]: encodeAsString(
-          options.extraCredential ?? {}
-        ),
-      },
+    this.clientConfig = {baseURL: options.server ?? DEFAULT_SERVER};
+
+    const headers: Headers = {
+      [TRINO_USER_HEADER]: DEFAULT_USER,
+      [TRINO_SOURCE_HEADER]: options.source ?? DEFAULT_SOURCE,
+      [TRINO_CATALOG_HEADER]: options.catalog,
+      [TRINO_SCHEMA_HEADER]: options.schema,
+      [TRINO_SESSION_HEADER]: encodeAsString(options.session ?? {}),
+      [TRINO_EXTRA_CREDENTIAL_HEADER]: encodeAsString(
+        options.extraCredential ?? {}
+      ),
     };
 
     if (options.auth && options.auth.type === 'basic') {
@@ -143,10 +159,10 @@ class Client {
         password: basic.password ?? '',
       };
 
-      const headers = this.clientConfig.headers ?? {};
       headers[TRINO_USER_HEADER] = basic.username;
-      this.clientConfig.headers = headers;
     }
+
+    this.clientConfig.headers = cleanHeaders(headers);
   }
 
   async request<T>(cfg: AxiosRequestConfig<any>): Promise<T> {
@@ -154,25 +170,22 @@ class Client {
       .create(this.clientConfig)
       .request(cfg)
       .then(response => {
-        const reqHeaders = this.clientConfig.headers ?? {};
+        const reqHeaders: Headers = this.clientConfig.headers ?? {};
         const respHeaders = response.headers;
         reqHeaders[TRINO_CATALOG_HEADER] =
           respHeaders[TRINO_SET_CATALOG_HEADER.toLowerCase()] ??
           this.options.catalog ??
-          reqHeaders[TRINO_CATALOG_HEADER] ??
-          '';
+          reqHeaders[TRINO_CATALOG_HEADER];
         reqHeaders[TRINO_SCHEMA_HEADER] =
           respHeaders[TRINO_SET_SCHEMA_HEADER.toLowerCase()] ??
           this.options.schema ??
-          reqHeaders[TRINO_SCHEMA_HEADER] ??
-          '';
+          reqHeaders[TRINO_SCHEMA_HEADER];
         reqHeaders[TRINO_SESSION_HEADER] =
           respHeaders[TRINO_SET_SESSION_HEADER.toLowerCase()] ??
           reqHeaders[TRINO_SESSION_HEADER] ??
-          this.options.session ??
-          '';
+          encodeAsString(this.options.session ?? {});
 
-        this.clientConfig.headers = reqHeaders;
+        this.clientConfig.headers = cleanHeaders(reqHeaders);
 
         return response.data;
       });
@@ -180,30 +193,20 @@ class Client {
 
   async query(query: Query | string): Promise<QueryResult> {
     const req = typeof query === 'string' ? {query} : query;
-    const headers: {[key: string]: string} = {};
-    if (req.user) {
-      headers[TRINO_USER_HEADER] = req.user;
-    }
-    if (req.catalog) {
-      headers[TRINO_CATALOG_HEADER] = req.catalog;
-    }
-    if (req.schema) {
-      headers[TRINO_SCHEMA_HEADER] = req.schema;
-    }
-    if (req.session) {
-      headers[TRINO_SESSION_HEADER] = encodeAsString(req.session);
-    }
-    if (req.extraCredential) {
-      headers[TRINO_EXTRA_CREDENTIAL_HEADER] = encodeAsString(
-        req.extraCredential
-      );
-    }
+    const headers: Headers = {};
+    headers[TRINO_USER_HEADER] = req.user;
+    headers[TRINO_CATALOG_HEADER] = req.catalog;
+    headers[TRINO_SCHEMA_HEADER] = req.schema;
+    headers[TRINO_SESSION_HEADER] = encodeAsString(req.session ?? {});
+    headers[TRINO_EXTRA_CREDENTIAL_HEADER] = encodeAsString(
+      req.extraCredential ?? {}
+    );
 
     return this.request({
       method: 'POST',
       url: '/v1/statement',
       data: req.query,
-      headers: headers,
+      headers: cleanHeaders(headers),
     });
   }
 
