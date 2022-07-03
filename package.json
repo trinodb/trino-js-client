@@ -1,10 +1,21 @@
 {
-  "name": "trino-client",
   "version": "0.1.1",
+  "name": "trino-client",
+  "description": "Trino client library",
   "author": {
     "name": "Filipe Regadas",
     "email": "oss@regadas.email",
     "url": "https://regadas.dev"
+  },
+  "keywords": [
+    "trino",
+    "trinodb",
+    "client"
+  ],
+  "repository": "regadas/trino-js-client",
+  "homepage": "https://github.com/regadas/trino-js-client#readme",
+  "bugs": {
+    "url": "https://github.com/regadas/trino-js-client/issues"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -32,7 +43,6 @@
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
     "test:it": "jest --testPathPattern tests/it",
-    "test:lint": "eslint .",
-    "publish": "npm publish"
+    "test:lint": "eslint ."
   }
 }
