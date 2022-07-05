@@ -223,7 +223,7 @@ class Client {
   }
 }
 
-class QueryIterator {
+export class QueryIterator {
   constructor(
     private readonly client: Client,
     private queryResult: QueryResult
