@@ -194,14 +194,15 @@ class Client {
 
   async query(query: Query | string): Promise<QueryResult> {
     const req = typeof query === 'string' ? {query} : query;
-    const headers: Headers = {};
-    headers[TRINO_USER_HEADER] = req.user;
-    headers[TRINO_CATALOG_HEADER] = req.catalog;
-    headers[TRINO_SCHEMA_HEADER] = req.schema;
-    headers[TRINO_SESSION_HEADER] = encodeAsString(req.session ?? {});
-    headers[TRINO_EXTRA_CREDENTIAL_HEADER] = encodeAsString(
-      req.extraCredential ?? {}
-    );
+    const headers: Headers = {
+      [TRINO_USER_HEADER]: req.user,
+      [TRINO_CATALOG_HEADER]: req.catalog,
+      [TRINO_SCHEMA_HEADER]: req.schema,
+      [TRINO_SESSION_HEADER]: encodeAsString(req.session ?? {}),
+      [TRINO_EXTRA_CREDENTIAL_HEADER]: encodeAsString(
+        req.extraCredential ?? {}
+      ),
+    };
 
     return this.request({
       method: 'POST',
