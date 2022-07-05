@@ -137,7 +137,7 @@ const cleanHeaders = (headers: Headers) => {
 };
 
 class Client {
-  private clientConfig: AxiosRequestConfig;
+  private readonly clientConfig: AxiosRequestConfig;
 
   constructor(private readonly options: ConnectionOptions) {
     this.clientConfig = {baseURL: options.server ?? DEFAULT_SERVER};
