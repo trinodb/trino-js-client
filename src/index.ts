@@ -21,13 +21,14 @@ const TRINO_CLEAR_SESSION_HEADER = TRINO_HEADER_PREFIX + 'Clear-Session';
 const TRINO_SET_ROLE_HEADER = TRINO_HEADER_PREFIX + 'Set-Role';
 const TRINO_EXTRA_CREDENTIAL_HEADER = TRINO_HEADER_PREFIX + 'Extra-Credential';
 
+export type AuthType = string;
+
 export interface Auth {
-  readonly type: string;
+  readonly type: AuthType;
 }
 
 export class BasicAuth implements Auth {
-  readonly type: string = 'basic';
-  constructor(username: string);
+  readonly type: AuthType = 'basic';
   constructor(readonly username: string, readonly password?: string) {}
 }
 
