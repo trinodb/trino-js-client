@@ -2,6 +2,7 @@
 
 .log
 dist
+docs
 
 .yarn/*
 !.yarn/patches
