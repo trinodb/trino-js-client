@@ -126,6 +126,12 @@ type Headers = {
   [key: string]: string | number | boolean | undefined;
 };
 
+/**
+ * It takes a Headers object and returns a new object with the same keys, but only the values that are
+ * truthy
+ * @param {Headers} headers - Headers - The headers object to be sanitized.
+ * @returns An object with the key-value pairs of the headers object, but only if the value is truthy.
+ */
 const cleanHeaders = (headers: Headers) => {
   const sanitizedHeaders: {[key: string]: string | number | boolean} = {};
   for (const [key, value] of Object.entries(headers)) {
@@ -136,6 +142,7 @@ const cleanHeaders = (headers: Headers) => {
   return sanitizedHeaders;
 };
 
+/* It's a wrapper around the Axios library that adds some Trino specific headers to the requests */
 class Client {
   private readonly clientConfig: AxiosRequestConfig;
 
@@ -166,6 +173,11 @@ class Client {
     this.clientConfig.headers = cleanHeaders(headers);
   }
 
+  /**
+   * Generic method to send a request to the server.
+   * @param cfg - AxiosRequestConfig<any>
+   * @returns The response data.
+   */
   async request<T>(cfg: AxiosRequestConfig<any>): Promise<T> {
     return axios
       .create(this.clientConfig)
@@ -192,6 +204,11 @@ class Client {
       });
   }
 
+  /**
+   * It takes a query object and returns a promise that resolves to a query result object
+   * @param {Query | string} query - The query to execute.
+   * @returns A promise that resolves to a QueryResult object.
+   */
   async query(query: Query | string): Promise<QueryResult> {
     const req = typeof query === 'string' ? {query} : query;
     const headers: Headers = {
@@ -212,10 +229,20 @@ class Client {
     });
   }
 
+  /**
+   * It returns the query info for a given queryId.
+   * @param {string} queryId - The query ID of the query you want to get information about.
+   * @returns The query info
+   */
   async queryInfo(queryId: string): Promise<QueryInfo> {
     return this.request({url: `/v1/query/${queryId}`, method: 'GET'});
   }
 
+  /**
+   * It cancels a query.
+   * @param {string} queryId - The queryId of the query to cancel.
+   * @returns The result of the query.
+   */
   async cancel(queryId: string): Promise<QueryResult> {
     return this.request({url: `/v1/query/${queryId}`, method: 'DELETE'}).then(
       _ => <QueryResult>{id: queryId}
@@ -223,18 +250,30 @@ class Client {
   }
 }
 
+/**
+ * Iterator for the query result data.
+ */
 export class QueryIterator {
   constructor(
     private readonly client: Client,
     private queryResult: QueryResult
   ) {}
 
+  /**
+   * It returns true if the queryResult object has a nextUri property, and false otherwise
+   * @returns A boolean value.
+   */
   hasNext(): boolean {
     return !!this.queryResult.nextUri;
   }
 
+  /**
+   * Retrieves the next QueryResult available. If there's no nextUri then there are no more
+   * results and the query reached a completion state, successful or failure.
+   * @returns The next set of results.
+   */
   async next(): Promise<QueryResult> {
-    if (!this.queryResult.nextUri) {
+    if (!this.hasNext()) {
       return this.queryResult;
     }
 
@@ -244,7 +283,7 @@ export class QueryIterator {
 
     const data = this.queryResult.data ?? [];
     if (data.length === 0) {
-      if (this.queryResult.nextUri) {
+      if (this.hasNext()) {
         return this.next();
       }
     }
@@ -252,12 +291,20 @@ export class QueryIterator {
     return this.queryResult;
   }
 
+  /**
+   * Closes the iterator which in reallity cancels the running query.
+   * @returns The query result with the id of the cancelled query.
+   */
   async close(): Promise<QueryResult> {
     this.queryResult = await this.client.cancel(this.queryResult.id);
     return this.queryResult;
   }
 
-  async forEach(fn: (row: QueryResult) => void): Promise<void> {
+  /**
+   * Performs the specified action for each element.
+   * @param fn A function that accepts a QueryResult. forEach calls the fn function one time for each QueryResult.
+   */
+  async forEach(fn: (queryResult: QueryResult) => void): Promise<void> {
     try {
       while (this.hasNext()) {
         await this.next();
@@ -268,35 +315,64 @@ export class QueryIterator {
     }
   }
 
-  async map<T>(fn: (row: QueryResult) => T): Promise<T[]> {
-    const result: T[] = [];
-    await this.forEach(row => result.push(fn(row)));
-    return result;
+  /**
+   * Calls a defined callback function on each QueryResult, and returns an array that contains the results.
+   * @param fn A function that accepts a QueryResult. map calls the fn function one time for each QueryResult.
+   */
+  async map<T>(fn: (queryResult: QueryResult) => T): Promise<T[]> {
+    return this.fold(<T[]>[], (qr, acc) => {
+      acc.push(fn(qr));
+      return acc;
+    });
   }
 
+  /**
+   * Calls a defined callback function on each QueryResult. The return value of the callback function is the accumulated
+   * result, and is provided as an argument in the next call to the callback function.
+   * @param acc The initial value of the accumulator.
+   * @param fn A function that accepts a QueryResult and accumulator, and returns an accumulator.
+   */
   async fold<T>(acc: T, fn: (row: QueryResult, acc: T) => T): Promise<T> {
     await this.forEach(row => (acc = fn(row, acc)));
     return acc;
   }
 }
 
+/**
+ * Trino is a client for the Trino REST API.
+ */
 export class Trino {
   private readonly client: Client;
 
-  constructor(private readonly options: ConnectionOptions) {
+  constructor(options: ConnectionOptions) {
     this.client = new Client(options);
   }
 
+  /**
+   * Submittes a query for execution and returns a QueryIterator object that can be used to iterate over the query results.
+   * @param query - The query to execute.
+   * @returns A QueryIterator object.
+   */
   async query(query: Query | string): Promise<QueryIterator> {
     return this.client
       .query(query)
       .then(resp => new QueryIterator(this.client, resp));
   }
 
-  async queryInfo(query: string): Promise<QueryInfo> {
-    return this.client.queryInfo(query);
+  /**
+   * Retrieves the query info for a given queryId.
+   * @param queryId - The query to execute.
+   * @returns The query info
+   */
+  async queryInfo(queryId: string): Promise<QueryInfo> {
+    return this.client.queryInfo(queryId);
   }
 
+  /**
+   * It cancels a query.
+   * @param {string} queryId - The queryId of the query to cancel.
+   * @returns The result of the query.
+   */
   async cancel(queryId: string): Promise<QueryResult> {
     return this.client.cancel(queryId);
   }
