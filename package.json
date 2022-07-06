@@ -1,5 +1,5 @@
 {
-  "version": "0.1.3",
+  "version": "0.1.6",
   "name": "trino-client",
   "description": "Trino client library",
   "author": {
@@ -12,8 +12,11 @@
     "trinodb",
     "client"
   ],
-  "repository": "regadas/trino-js-client",
-  "homepage": "https://regadas.dev/trino-js-client/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/regadas/trino-js-client.git"
+  },
+  "homepage": "https://regadas.dev/trino-js-client",
   "bugs": {
     "url": "https://github.com/regadas/trino-js-client/issues"
   },
