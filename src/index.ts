@@ -198,6 +198,10 @@ class Client {
           reqHeaders[TRINO_SESSION_HEADER] ??
           encodeAsString(this.options.session ?? {});
 
+        if (TRINO_CLEAR_SESSION_HEADER.toLowerCase() in respHeaders) {
+          reqHeaders[TRINO_SESSION_HEADER] = undefined;
+        }
+
         this.clientConfig.headers = cleanHeaders(reqHeaders);
 
         return response.data;
