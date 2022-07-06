@@ -187,12 +187,12 @@ class Client {
         const respHeaders = response.headers;
         reqHeaders[TRINO_CATALOG_HEADER] =
           respHeaders[TRINO_SET_CATALOG_HEADER.toLowerCase()] ??
-          this.options.catalog ??
-          reqHeaders[TRINO_CATALOG_HEADER];
+          reqHeaders[TRINO_CATALOG_HEADER] ??
+          this.options.catalog;
         reqHeaders[TRINO_SCHEMA_HEADER] =
           respHeaders[TRINO_SET_SCHEMA_HEADER.toLowerCase()] ??
-          this.options.schema ??
-          reqHeaders[TRINO_SCHEMA_HEADER];
+          reqHeaders[TRINO_SCHEMA_HEADER] ??
+          this.options.schema;
         reqHeaders[TRINO_SESSION_HEADER] =
           respHeaders[TRINO_SET_SESSION_HEADER.toLowerCase()] ??
           reqHeaders[TRINO_SESSION_HEADER] ??
