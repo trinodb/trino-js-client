@@ -80,4 +80,38 @@ describe('trino', () => {
     expect(info.state).toBe('FINISHED');
     expect(info.query).toBe(singleCustomerQuery);
   });
+
+  test.concurrent('QueryResult has error info', async () => {
+    const trino = new Trino({
+      catalog: 'tpcds',
+      schema: 'sf100000',
+      auth: new BasicAuth('test'),
+    });
+    const sqr = await trino.query('select * from foobar where id = -1');
+    const qr = await sqr.next();
+    expect(qr.error).toBeDefined();
+    expect(qr.error?.message).toBe(
+      "line 1:15: Table 'tpcds.sf100000.foobar' does not exist"
+    );
+
+    await sqr.close();
+  });
+
+  test.concurrent('QueryInfo has failure info', async () => {
+    const trino = new Trino({
+      catalog: 'tpcds',
+      schema: 'sf100000',
+      auth: new BasicAuth('test'),
+    });
+
+    const sqr = await trino.query('select * from foobar where id = -1');
+    const qr = await sqr.next();
+    await sqr.close();
+
+    const info = await trino.queryInfo(qr.id);
+    expect(info.state).toBe('FAILED');
+    expect(info.failureInfo?.message).toBe(
+      "line 1:15: Table 'tpcds.sf100000.foobar' does not exist"
+    );
+  });
 });
