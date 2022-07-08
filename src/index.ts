@@ -97,6 +97,21 @@ export type Columns = {name: string; type: string}[];
 
 export type QueryData = any[];
 
+export type QueryFailureInfo = {
+  type: string;
+  message: string;
+  suppressed: string[];
+  stack: string[];
+};
+
+export type QueryError = {
+  message: string;
+  errorCode: number;
+  errorName: string;
+  errorType: string;
+  failureInfo: QueryFailureInfo;
+};
+
 export type QueryResult = {
   id: string;
   infoUri?: string;
@@ -105,12 +120,14 @@ export type QueryResult = {
   data?: QueryData[];
   stats?: QueryStats;
   warnings?: string[];
+  error?: QueryError;
 };
 
 export type QueryInfo = {
   queryId: string;
   state: string;
   query: string;
+  failureInfo?: QueryFailureInfo;
 };
 
 export type Query = {
