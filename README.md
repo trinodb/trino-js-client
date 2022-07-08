@@ -2,6 +2,8 @@
 
 A [Trino](https://trino.io) client for [Node.js](https://nodejs.org/).
 
+[![@latest](https://img.shields.io/npm/v/trino-client.svg)](https://www.npmjs.com/package/trino-client)
+
 ## Features
 
 - Connections over HTTP or HTTPS
@@ -34,6 +36,6 @@ const data = await queryIter.fold<QueryData[]>([], (row, acc) => [
 ]);
 ```
 
-More usage [examples](./tests/it/client.spec.ts) can be found in the [integration tests](./tests/it/client.spec.ts).
+More usage [examples](https://github.com/regadas/trino-js-client/blob/main/tests/it/client.spec.ts) can be found in the [integration tests](https://github.com/regadas/trino-js-client/blob/main/tests/it/client.spec.ts).
 
 Filipe Regadas (regadas) 2022
