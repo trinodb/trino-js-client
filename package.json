@@ -47,6 +47,7 @@
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
     "test:it": "jest --testPathPattern tests/it",
-    "test:lint": "eslint ."
+    "test:lint": "eslint .",
+    "publish": "yarn build && yarn npm publish"
   }
 }
