@@ -1,5 +1,5 @@
 {
-  "version": "0.1.8",
+  "version": "0.1.9",
   "name": "trino-client",
   "description": "Trino client library",
   "author": {
@@ -47,6 +47,7 @@
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
     "test:it": "jest --testPathPattern tests/it",
-    "test:lint": "eslint ."
+    "test:lint": "eslint .",
+    "publish": "yarn build && yarn npm publish"
   }
 }
