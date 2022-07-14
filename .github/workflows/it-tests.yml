@@ -16,9 +16,9 @@ jobs:
       - name: Deploy trino
         run: kubectl apply -f tests/it/trino.yml
       - name: Wait for pods to be ready
-        run: kubectl wait --for=condition=ready pods -n trino-system --all --timeout=60s
+        run: kubectl wait --for=condition=ready pods -n trino-system --all --timeout=120s
       - name: Test
         run: |
-          kubectl -n trino-system port-forward svc/trino 8080:8080 & 
+          kubectl -n trino-system port-forward svc/trino 8080:8080 > /dev/null & 
           sleep 10 # give it a little bit more time to start
-          yarn test:it
+          yarn test:it --testTimeout=60000
