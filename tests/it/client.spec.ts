@@ -62,7 +62,6 @@ describe('trino', () => {
     await query.close();
 
     const info = await trino.queryInfo(qr.id);
-    expect(info.state).toBe('FINISHED');
     expect(info.query).toBe(singleCustomerQuery);
   });
 
@@ -77,7 +76,6 @@ describe('trino', () => {
     await sqr.close();
 
     const info = await trino.queryInfo(qr.id);
-    expect(info.state).toBe('FINISHED');
     expect(info.query).toBe(singleCustomerQuery);
   });
 

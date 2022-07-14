@@ -1,0 +1,211 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: trino-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: trino
+  namespace: trino-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trino-catalog
+  namespace: trino-system
+  labels:
+    app: trino
+    role: catalogs
+data:
+  tpch.properties: |
+    connector.name=tpch
+    tpch.splits-per-node=4
+  tpcds.properties: |
+    connector.name=tpcds
+    tpcds.splits-per-node=4
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trino-coordinator
+  namespace: trino-system
+  labels:
+    app: trino
+    component: coordinator
+data:
+  node.properties: |
+    node.environment=dev
+    node.data-dir=/data/trino
+    plugin.dir=/usr/lib/trino/plugin
+
+  jvm.config: |
+    -server
+    -Xmx2G
+    -XX:+UseG1GC
+
+  config.properties: |
+    coordinator=true
+    node-scheduler.include-coordinator=false
+    http-server.http.port=8080
+    discovery-server.enabled=true
+    discovery.uri=http://localhost:8080
+
+  log.properties: |
+    io.trino=INFO
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trino-worker
+  namespace: trino-system
+  labels:
+    app: trino
+    component: worker
+data:
+  node.properties: |
+    node.environment=dev
+    node.data-dir=/data/trino
+    plugin.dir=/usr/lib/trino/plugin
+
+  jvm.config: |
+    -server
+    -Xmx2G
+    -XX:+UseG1GC
+
+  config.properties: |
+    coordinator=false
+    http-server.http.port=8080
+    discovery.uri=http://trino:8080
+
+  log.properties: |
+    io.trino=INFO
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trino-coordinator
+  namespace: trino-system
+  labels:
+    app: trino
+    component: coordinator
+spec:
+  selector:
+    matchLabels:
+      app: trino
+      component: coordinator
+  template:
+    metadata:
+      labels:
+        app: trino
+        component: coordinator
+    spec:
+      serviceAccountName: trino
+      securityContext:
+        fsGroup: 9999
+      volumes:
+        - name: config-volume
+          configMap:
+            name: trino-coordinator
+        - name: catalog-volume
+          configMap:
+            name: trino-catalog
+      containers:
+        - name: trino-coordinator
+          image: "trinodb/trino:latest"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /etc/trino
+              name: config-volume
+            - mountPath: /etc/trino/catalog
+              name: catalog-volume
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /v1/info
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /v1/info
+              port: http
+          resources:
+            requests:
+              cpu: "100m"
+              memory: 512Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trino-worker
+  namespace: trino-system
+  labels:
+    app: trino
+    component: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trino
+      component: worker
+  template:
+    metadata:
+      labels:
+        app: trino
+        component: worker
+    spec:
+      serviceAccountName: trino
+      volumes:
+        - name: config-volume
+          configMap:
+            name: trino-worker
+        - name: catalog-volume
+          configMap:
+            name: trino-catalog
+      securityContext:
+        fsGroup: 9999
+      containers:
+        - name: trino-worker
+          image: "trinodb/trino:latest"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /etc/trino
+              name: config-volume
+            - mountPath: /etc/trino/catalog
+              name: catalog-volume
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /v1/info
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /v1/info
+              port: http
+          resources:
+            requests:
+              cpu: "100m"
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trino
+  namespace: trino-system
+  labels:
+    app: trino
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: trino
+    component: coordinator

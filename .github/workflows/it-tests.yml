@@ -1,0 +1,21 @@
+name: IT tests
+on:
+  push:
+    branches:
+      - main
+jobs:
+  it-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.3.0
+        with:
+          cluster_name: trino
+      - name: Deploy trino
+        run: kubectl apply -f tests/it/trino.yml
+      - name: Wait for pods to be ready
+        run: kubectl wait --for=condition=ready pods -n trino-system --all --timeout=60s
+      - name: Test
+        run: |
+          kubectl -n trino-system port-forward svc/trino 8080:8080 & 
+          yarn test:it
