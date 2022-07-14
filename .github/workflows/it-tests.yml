@@ -20,4 +20,5 @@ jobs:
       - name: Test
         run: |
           kubectl -n trino-system port-forward svc/trino 8080:8080 & 
+          sleep 10 # give it a little bit more time to start
           yarn test:it
