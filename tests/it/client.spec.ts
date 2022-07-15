@@ -133,7 +133,6 @@ describe('trino', () => {
       ...acc,
       ...(row.data ?? []),
     ]);
-    console.log(data);
     expect(data).toHaveLength(limit);
   });
 
