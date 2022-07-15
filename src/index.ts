@@ -8,6 +8,7 @@ const DEFAULT_USER = process.env.USER;
 const TRINO_HEADER_PREFIX = 'X-Trino-';
 const TRINO_PREPARED_STATEMENT_HEADER =
   TRINO_HEADER_PREFIX + 'Prepared-Statement';
+const TRINO_ADDED_PREPARE_HEADER = TRINO_HEADER_PREFIX + 'Added-Prepare';
 const TRINO_USER_HEADER = TRINO_HEADER_PREFIX + 'User';
 const TRINO_SOURCE_HEADER = TRINO_HEADER_PREFIX + 'Source';
 const TRINO_CATALOG_HEADER = TRINO_HEADER_PREFIX + 'Catalog';
@@ -217,6 +218,14 @@ class Client {
 
         if (TRINO_CLEAR_SESSION_HEADER.toLowerCase() in respHeaders) {
           reqHeaders[TRINO_SESSION_HEADER] = undefined;
+        }
+
+        if (TRINO_ADDED_PREPARE_HEADER.toLowerCase() in respHeaders) {
+          const prep = reqHeaders[TRINO_PREPARED_STATEMENT_HEADER];
+
+          reqHeaders[TRINO_PREPARED_STATEMENT_HEADER] =
+            (prep ? prep + ',' : '') +
+            respHeaders[TRINO_ADDED_PREPARE_HEADER.toLowerCase()];
         }
 
         this.clientConfig.headers = cleanHeaders(reqHeaders);

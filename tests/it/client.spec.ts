@@ -4,6 +4,12 @@ const allCustomerQuery = 'select * from customer';
 const limit = 1;
 const singleCustomerQuery = `select * from customer limit ${limit}`;
 const useSchemaQuery = 'use tpcds.sf100000';
+const prepareListCustomerQuery =
+  'prepare list_customers from select * from customer limit ?';
+const listCustomersQuery = `execute list_customers using ${limit}`;
+const prepareListSalesQuery =
+  'prepare list_sales from select * from web_sales limit ?';
+const listSalesQuery = `execute list_sales using ${limit}`;
 
 describe('trino', () => {
   test.concurrent('exhaust query results', async () => {
@@ -111,5 +117,48 @@ describe('trino', () => {
     expect(info.failureInfo?.message).toBe(
       "line 1:15: Table 'tpcds.sf100000.foobar' does not exist"
     );
+  });
+
+  test.concurrent('prepare statement', async () => {
+    const trino = new Trino({
+      catalog: 'tpcds',
+      schema: 'sf100000',
+      auth: new BasicAuth('test'),
+    });
+
+    await trino.query(prepareListCustomerQuery).then(qr => qr.next());
+
+    const iter = await trino.query(listCustomersQuery);
+    const data = await iter.fold<QueryData[]>([], (row, acc) => [
+      ...acc,
+      ...(row.data ?? []),
+    ]);
+    console.log(data);
+    expect(data).toHaveLength(limit);
+  });
+
+  test.concurrent('multiple prepare statement', async () => {
+    const trino = new Trino({
+      catalog: 'tpcds',
+      schema: 'sf100000',
+      auth: new BasicAuth('test'),
+    });
+
+    await trino.query(prepareListCustomerQuery).then(qr => qr.next());
+    await trino.query(prepareListSalesQuery).then(qr => qr.next());
+
+    const customersIter = await trino.query(listCustomersQuery);
+    const customers = await customersIter.fold<QueryData[]>([], (row, acc) => [
+      ...acc,
+      ...(row.data ?? []),
+    ]);
+    expect(customers).toHaveLength(limit);
+
+    const salesIter = await trino.query(listSalesQuery);
+    const sales = await salesIter.fold<QueryData[]>([], (row, acc) => [
+      ...acc,
+      ...(row.data ?? []),
+    ]);
+    expect(sales).toHaveLength(limit);
   });
 });
