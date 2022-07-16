@@ -162,10 +162,15 @@ const cleanHeaders = (headers: Headers) => {
 
 /* It's a wrapper around the Axios library that adds some Trino specific headers to the requests */
 class Client {
-  private readonly clientConfig: AxiosRequestConfig;
+  private constructor(
+    private readonly clientConfig: AxiosRequestConfig,
+    private readonly options: ConnectionOptions
+  ) {}
 
-  constructor(private readonly options: ConnectionOptions) {
-    this.clientConfig = {baseURL: options.server ?? DEFAULT_SERVER};
+  static create(options: ConnectionOptions): Client {
+    const clientConfig: AxiosRequestConfig = {
+      baseURL: options.server ?? DEFAULT_SERVER,
+    };
 
     const headers: Headers = {
       [TRINO_USER_HEADER]: DEFAULT_USER,
@@ -180,7 +185,7 @@ class Client {
 
     if (options.auth && options.auth.type === 'basic') {
       const basic: BasicAuth = <BasicAuth>options.auth;
-      this.clientConfig.auth = {
+      clientConfig.auth = {
         username: basic.username,
         password: basic.password ?? '',
       };
@@ -188,7 +193,9 @@ class Client {
       headers[TRINO_USER_HEADER] = basic.username;
     }
 
-    this.clientConfig.headers = cleanHeaders(headers);
+    clientConfig.headers = cleanHeaders(headers);
+
+    return new Client(clientConfig, options);
   }
 
   /**
@@ -372,10 +379,10 @@ export class QueryIterator {
  * Trino is a client for the Trino REST API.
  */
 export class Trino {
-  private readonly client: Client;
+  private constructor(private readonly client: Client) {}
 
-  constructor(options: ConnectionOptions) {
-    this.client = new Client(options);
+  static create(options: ConnectionOptions): Trino {
+    return new Trino(Client.create(options));
   }
 
   /**

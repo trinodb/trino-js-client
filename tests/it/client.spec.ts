@@ -13,7 +13,7 @@ const listSalesQuery = `execute list_sales using ${limit}`;
 
 describe('trino', () => {
   test.concurrent('exhaust query results', async () => {
-    const trino = new Trino({
+    const trino = Trino.create({
       catalog: 'tpcds',
       schema: 'sf100000',
       auth: new BasicAuth('test'),
@@ -28,7 +28,7 @@ describe('trino', () => {
   });
 
   test.concurrent('close running query', async () => {
-    const trino = new Trino({
+    const trino = Trino.create({
       catalog: 'tpcds',
       schema: 'sf100000',
       auth: new BasicAuth('test'),
@@ -43,7 +43,7 @@ describe('trino', () => {
   });
 
   test.concurrent('cancel running query', async () => {
-    const trino = new Trino({
+    const trino = Trino.create({
       catalog: 'tpcds',
       schema: 'sf100000',
       auth: new BasicAuth('test'),
@@ -58,7 +58,7 @@ describe('trino', () => {
   });
 
   test.concurrent('get query info', async () => {
-    const trino = new Trino({
+    const trino = Trino.create({
       catalog: 'tpcds',
       schema: 'sf100000',
       auth: new BasicAuth('test'),
@@ -72,7 +72,7 @@ describe('trino', () => {
   });
 
   test.concurrent('query request header propagation', async () => {
-    const trino = new Trino({catalog: 'tpcds', auth: new BasicAuth('test')});
+    const trino = Trino.create({catalog: 'tpcds', auth: new BasicAuth('test')});
     const query = await trino.query(useSchemaQuery);
     await query.next();
     await query.close();
@@ -86,7 +86,7 @@ describe('trino', () => {
   });
 
   test.concurrent('QueryResult has error info', async () => {
-    const trino = new Trino({
+    const trino = Trino.create({
       catalog: 'tpcds',
       schema: 'sf100000',
       auth: new BasicAuth('test'),
@@ -102,7 +102,7 @@ describe('trino', () => {
   });
 
   test.concurrent('QueryInfo has failure info', async () => {
-    const trino = new Trino({
+    const trino = Trino.create({
       catalog: 'tpcds',
       schema: 'sf100000',
       auth: new BasicAuth('test'),
@@ -120,7 +120,7 @@ describe('trino', () => {
   });
 
   test.concurrent('prepare statement', async () => {
-    const trino = new Trino({
+    const trino = Trino.create({
       catalog: 'tpcds',
       schema: 'sf100000',
       auth: new BasicAuth('test'),
@@ -137,7 +137,7 @@ describe('trino', () => {
   });
 
   test.concurrent('multiple prepare statement', async () => {
-    const trino = new Trino({
+    const trino = Trino.create({
       catalog: 'tpcds',
       schema: 'sf100000',
       auth: new BasicAuth('test'),
