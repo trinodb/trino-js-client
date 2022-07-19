@@ -196,7 +196,7 @@ class Client {
    * @param cfg - AxiosRequestConfig<any>
    * @returns The response data.
    */
-  async request<T>(cfg: AxiosRequestConfig<any>): Promise<T> {
+  async request<T>(cfg: AxiosRequestConfig<unknown>): Promise<T> {
     return axios
       .create(this.clientConfig)
       .request(cfg)
@@ -239,7 +239,7 @@ class Client {
    * @param {Query | string} query - The query to execute.
    * @returns A promise that resolves to a QueryResult object.
    */
-  async query(query: Query | string): Promise<QueryResult> {
+  async query(query: Query | string): Promise<Iterator<QueryResult>> {
     const req = typeof query === 'string' ? {query} : query;
     const headers: Headers = {
       [TRINO_USER_HEADER]: req.user,
@@ -250,13 +250,15 @@ class Client {
         req.extraCredential ?? {}
       ),
     };
-
-    return this.request({
+    const requestConfig = {
       method: 'POST',
       url: '/v1/statement',
       data: req.query,
       headers: cleanHeaders(headers),
-    });
+    };
+    return this.request<QueryResult>(requestConfig).then(
+      result => new Iterator(new QueryIterator(this, result))
+    );
   }
 
   /**
@@ -280,14 +282,75 @@ class Client {
   }
 }
 
+export class Iterator<T> implements AsyncIterableIterator<T> {
+  constructor(private readonly iter: AsyncIterableIterator<T>) {}
+
+  [Symbol.asyncIterator](): AsyncIterableIterator<T> {
+    return this;
+  }
+
+  next(): Promise<IteratorResult<T>> {
+    return this.iter.next();
+  }
+
+  /**
+   * Calls a defined callback function on each QueryResult, and returns an array that contains the results.
+   * @param fn A function that accepts a QueryResult. map calls the fn function one time for each QueryResult.
+   */
+  map<B>(fn: (t: T) => B): Iterator<B> {
+    const that: AsyncIterableIterator<T> = this.iter;
+    const asyncIterableIterator: AsyncIterableIterator<B> = {
+      [Symbol.asyncIterator]: () => asyncIterableIterator,
+      async next() {
+        return that.next().then(result => {
+          return <IteratorResult<B>>{
+            value: fn(result.value),
+            done: result.done,
+          };
+        });
+      },
+    };
+    return new Iterator(asyncIterableIterator);
+  }
+
+  /**
+   * Performs the specified action for each element.
+   * @param fn A function that accepts a QueryResult. forEach calls the fn function one time for each QueryResult.
+   */
+  async forEach(fn: (value: T) => void): Promise<void> {
+    for await (const value of this) {
+      fn(value);
+    }
+  }
+
+  /**
+   * Calls a defined callback function on each QueryResult. The return value of the callback function is the accumulated
+   * result, and is provided as an argument in the next call to the callback function.
+   * @param acc The initial value of the accumulator.
+   * @param fn A function that accepts a QueryResult and accumulator, and returns an accumulator.
+   */
+  async fold<B>(acc: B, fn: (value: T, acc: B) => B): Promise<B> {
+    await this.forEach(value => (acc = fn(value, acc)));
+    return acc;
+  }
+}
+
 /**
  * Iterator for the query result data.
  */
-export class QueryIterator {
+export class QueryIterator implements AsyncIterableIterator<QueryResult> {
   constructor(
     private readonly client: Client,
     private queryResult: QueryResult
   ) {}
+
+  [Symbol.asyncIterator](): AsyncIterableIterator<QueryResult> {
+    return this;
+  }
+
+  async foobar(): Promise<number> {
+    return Promise.resolve(1);
+  }
 
   /**
    * It returns true if the queryResult object has a nextUri property, and false otherwise
@@ -302,9 +365,9 @@ export class QueryIterator {
    * results and the query reached a completion state, successful or failure.
    * @returns The next set of results.
    */
-  async next(): Promise<QueryResult> {
+  async next(): Promise<IteratorResult<QueryResult>> {
     if (!this.hasNext()) {
-      return this.queryResult;
+      return Promise.resolve({value: this.queryResult, done: true});
     }
 
     this.queryResult = await this.client.request<QueryResult>({
@@ -318,53 +381,7 @@ export class QueryIterator {
       }
     }
 
-    return this.queryResult;
-  }
-
-  /**
-   * Closes the iterator which in reallity cancels the running query.
-   * @returns The query result with the id of the cancelled query.
-   */
-  async close(): Promise<QueryResult> {
-    this.queryResult = await this.client.cancel(this.queryResult.id);
-    return this.queryResult;
-  }
-
-  /**
-   * Performs the specified action for each element.
-   * @param fn A function that accepts a QueryResult. forEach calls the fn function one time for each QueryResult.
-   */
-  async forEach(fn: (queryResult: QueryResult) => void): Promise<void> {
-    try {
-      while (this.hasNext()) {
-        await this.next();
-        fn(this.queryResult);
-      }
-    } finally {
-      await this.close();
-    }
-  }
-
-  /**
-   * Calls a defined callback function on each QueryResult, and returns an array that contains the results.
-   * @param fn A function that accepts a QueryResult. map calls the fn function one time for each QueryResult.
-   */
-  async map<T>(fn: (queryResult: QueryResult) => T): Promise<T[]> {
-    return this.fold(<T[]>[], (qr, acc) => {
-      acc.push(fn(qr));
-      return acc;
-    });
-  }
-
-  /**
-   * Calls a defined callback function on each QueryResult. The return value of the callback function is the accumulated
-   * result, and is provided as an argument in the next call to the callback function.
-   * @param acc The initial value of the accumulator.
-   * @param fn A function that accepts a QueryResult and accumulator, and returns an accumulator.
-   */
-  async fold<T>(acc: T, fn: (row: QueryResult, acc: T) => T): Promise<T> {
-    await this.forEach(row => (acc = fn(row, acc)));
-    return acc;
+    return Promise.resolve({value: this.queryResult, done: false});
   }
 }
 
@@ -383,10 +400,8 @@ export class Trino {
    * @param query - The query to execute.
    * @returns A QueryIterator object.
    */
-  async query(query: Query | string): Promise<QueryIterator> {
-    return this.client
-      .query(query)
-      .then(resp => new QueryIterator(this.client, resp));
+  async query(query: Query | string): Promise<Iterator<QueryResult>> {
+    return this.client.query(query);
   }
 
   /**

@@ -31,11 +31,10 @@ const trino = new Trino({
   auth: new BasicAuth('test'),
 });
 
-const queryIter = await trino.query('select * from customer limit 100');
-const data = await queryIter.fold<QueryData[]>([], (row, acc) => [
-  ...acc,
-  ...(row.data ?? []),
-]);
+const iter = await trino.query('select * from customer limit 100');
+const data = await iter
+  .map(r => r.data ?? [])
+  .fold<QueryData[]>([], (row, acc) => [...acc, ...row]);
 ```
 
 More usage [examples](https://github.com/regadas/trino-js-client/blob/main/tests/it/client.spec.ts) can be found in the [integration tests](https://github.com/regadas/trino-js-client/blob/main/tests/it/client.spec.ts).
