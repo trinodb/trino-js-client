@@ -24,7 +24,7 @@ A [Trino](https://trino.io) client for [Node.js](https://nodejs.org/).
 ## Usage
 
 ```typescript
-const trino = new Trino({
+const trino = Trino.create({
   server: 'http://localhost:8080'
   catalog: 'tpcds',
   schema: 'sf100000',
