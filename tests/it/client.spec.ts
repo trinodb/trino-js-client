@@ -1,4 +1,4 @@
-import {BasicAuth, QueryData, Trino} from '../../src';
+import {BasicAuth, QueryData, QueryResult, Iterator, Trino} from '../../src';
 
 const allCustomerQuery = 'select * from customer';
 const limit = 1;
@@ -18,11 +18,11 @@ describe('trino', () => {
       schema: 'sf100000',
       auth: new BasicAuth('test'),
     });
-    const query = await trino.query(singleCustomerQuery);
-    const data = await query.fold<QueryData[]>([], (row, acc) => [
-      ...acc,
-      ...(row.data ?? []),
-    ]);
+
+    const iter = await trino.query(singleCustomerQuery);
+    const data = await iter
+      .map(r => r.data ?? [])
+      .fold<QueryData[]>([], (row, acc) => [...acc, ...row]);
 
     expect(data).toHaveLength(limit);
   });
@@ -35,9 +35,9 @@ describe('trino', () => {
     });
     const query = await trino.query(allCustomerQuery);
     const qr = await query.next();
-    await query.close();
+    await trino.cancel(qr.value.id);
 
-    const info = await trino.queryInfo(qr.id);
+    const info = await trino.queryInfo(qr.value.id);
 
     expect(info.state).toBe('FAILED');
   });
@@ -51,8 +51,8 @@ describe('trino', () => {
     const query = await trino.query(allCustomerQuery);
     const qr = await query.next();
 
-    await trino.cancel(qr.id);
-    const info = await trino.queryInfo(qr.id);
+    await trino.cancel(qr.value.id);
+    const info = await trino.queryInfo(qr.value.id);
 
     expect(info.state).toBe('FAILED');
   });
@@ -65,9 +65,9 @@ describe('trino', () => {
     });
     const query = await trino.query(singleCustomerQuery);
     const qr = await query.next();
-    await query.close();
+    await trino.cancel(qr.value.id);
 
-    const info = await trino.queryInfo(qr.id);
+    const info = await trino.queryInfo(qr.value.id);
     expect(info.query).toBe(singleCustomerQuery);
   });
 
@@ -75,13 +75,12 @@ describe('trino', () => {
     const trino = new Trino({catalog: 'tpcds', auth: new BasicAuth('test')});
     const query = await trino.query(useSchemaQuery);
     await query.next();
-    await query.close();
 
     const sqr = await trino.query(singleCustomerQuery);
     const qr = await sqr.next();
-    await sqr.close();
+    await trino.cancel(qr.value.id);
 
-    const info = await trino.queryInfo(qr.id);
+    const info = await trino.queryInfo(qr.value.id);
     expect(info.query).toBe(singleCustomerQuery);
   });
 
@@ -93,12 +92,12 @@ describe('trino', () => {
     });
     const sqr = await trino.query('select * from foobar where id = -1');
     const qr = await sqr.next();
-    expect(qr.error).toBeDefined();
-    expect(qr.error?.message).toBe(
+    expect(qr.value.error).toBeDefined();
+    expect(qr.value.error?.message).toBe(
       "line 1:15: Table 'tpcds.sf100000.foobar' does not exist"
     );
 
-    await sqr.close();
+    await trino.cancel(qr.value.id);
   });
 
   test.concurrent('QueryInfo has failure info', async () => {
@@ -110,9 +109,9 @@ describe('trino', () => {
 
     const sqr = await trino.query('select * from foobar where id = -1');
     const qr = await sqr.next();
-    await sqr.close();
+    await trino.cancel(qr.value.id);
 
-    const info = await trino.queryInfo(qr.id);
+    const info = await trino.queryInfo(qr.value.id);
     expect(info.state).toBe('FAILED');
     expect(info.failureInfo?.message).toBe(
       "line 1:15: Table 'tpcds.sf100000.foobar' does not exist"
