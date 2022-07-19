@@ -196,7 +196,7 @@ class Client {
    * @param cfg - AxiosRequestConfig<any>
    * @returns The response data.
    */
-  async request<T>(cfg: AxiosRequestConfig<any>): Promise<T> {
+  async request<T>(cfg: AxiosRequestConfig<unknown>): Promise<T> {
     return axios
       .create(this.clientConfig)
       .request(cfg)
@@ -239,7 +239,7 @@ class Client {
    * @param {Query | string} query - The query to execute.
    * @returns A promise that resolves to a QueryResult object.
    */
-  async query(query: Query | string): Promise<QueryResult> {
+  async query(query: Query | string): Promise<QueryIterator> {
     const req = typeof query === 'string' ? {query} : query;
     const headers: Headers = {
       [TRINO_USER_HEADER]: req.user,
@@ -250,13 +250,15 @@ class Client {
         req.extraCredential ?? {}
       ),
     };
-
-    return this.request({
+    const requestConfig = {
       method: 'POST',
       url: '/v1/statement',
       data: req.query,
       headers: cleanHeaders(headers),
-    });
+    };
+    return this.request<QueryResult>(requestConfig).then(
+      result => new QueryIterator(this, result)
+    );
   }
 
   /**
@@ -384,9 +386,7 @@ export class Trino {
    * @returns A QueryIterator object.
    */
   async query(query: Query | string): Promise<QueryIterator> {
-    return this.client
-      .query(query)
-      .then(resp => new QueryIterator(this.client, resp));
+    return this.client.query(query);
   }
 
   /**
