@@ -1,4 +1,4 @@
-import {BasicAuth, QueryData, QueryResult, Iterator, Trino} from '../../src';
+import {BasicAuth, QueryData, Trino} from '../../src';
 
 const allCustomerQuery = 'select * from customer';
 const limit = 1;
