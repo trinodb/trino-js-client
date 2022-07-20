@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.3.0
         with:
@@ -19,6 +21,6 @@ jobs:
         run: kubectl wait --for=condition=ready pods -n trino-system --all --timeout=120s
       - name: Test
         run: |
-          kubectl -n trino-system port-forward svc/trino 8080:8080 > /dev/null & 
+          kubectl -n trino-system port-forward svc/trino 8080:8080 > /dev/null &
           sleep 10 # give it a little bit more time to start
           yarn test:it --testTimeout=60000
