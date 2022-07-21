@@ -1,0 +1,23 @@
+name: Publish Package to npmjs
+on:
+  release:
+    types: [created]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # Setup .npmrc file to publish to npm
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16.x"
+          registry-url: "https://registry.npmjs.org"
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+      # Writes token to .yarnrc.yml
+      - name: Setup NPM auth token
+        run: |
+          echo npmAuthToken: "${NODE_AUTH_TOKEN}" >> ./.yarnrc.yml
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: yarn publish
