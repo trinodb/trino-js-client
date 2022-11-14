@@ -4427,18 +4427,18 @@ __metadata:
   linkType: hard
 
 "typedoc@npm:^0.23.10":
-  version: 0.23.19
-  resolution: "typedoc@npm:0.23.19"
+  version: 0.23.21
+  resolution: "typedoc@npm:0.23.21"
   dependencies:
     lunr: ^2.3.9
     marked: ^4.0.19
     minimatch: ^5.1.0
     shiki: ^0.11.1
   peerDependencies:
-    typescript: 4.6.x || 4.7.x || 4.8.x
+    typescript: 4.6.x || 4.7.x || 4.8.x || 4.9.x
   bin:
     typedoc: bin/typedoc
-  checksum: 4659dce4e8550a3f0d4739b6c9c583d8f2afba9c37e2fe38325e3cff781a50daf57afe10cbcc27f11b56da0623d502628e0713c55f30eae619c4427d18ce1064
+  checksum: 931520b21ae25ba8ea86111ea7c66f474468bb83cbe1d04c0ea19490f130ea44ba58b7ee4d12f7f02368cfe053ed1fa291c8843c466c8af383ef956de177360d
   languageName: node
   linkType: hard
 
