@@ -1,4 +1,4 @@
-import axios, {AxiosRequestConfig} from 'axios';
+import axios, {AxiosRequestConfig, RawAxiosRequestHeaders} from 'axios';
 
 const DEFAULT_SERVER = 'http://localhost:8080';
 const DEFAULT_SOURCE = 'trino-js-client';
@@ -140,18 +140,14 @@ export type Query = {
   extraCredential?: ExtraCredential;
 };
 
-type Headers = {
-  [key: string]: string | number | boolean | undefined;
-};
-
 /**
  * It takes a Headers object and returns a new object with the same keys, but only the values that are
  * truthy
- * @param {Headers} headers - Headers - The headers object to be sanitized.
+ * @param {RawAxiosRequestHeaders} headers - RawAxiosRequestHeaders - The headers object to be sanitized.
  * @returns An object with the key-value pairs of the headers object, but only if the value is truthy.
  */
-const cleanHeaders = (headers: Headers) => {
-  const sanitizedHeaders: {[key: string]: string | number | boolean} = {};
+const cleanHeaders = (headers: RawAxiosRequestHeaders) => {
+  const sanitizedHeaders: RawAxiosRequestHeaders = {};
   for (const [key, value] of Object.entries(headers)) {
     if (value) {
       sanitizedHeaders[key] = value;
@@ -172,7 +168,7 @@ class Client {
       baseURL: options.server ?? DEFAULT_SERVER,
     };
 
-    const headers: Headers = {
+    const headers: RawAxiosRequestHeaders = {
       [TRINO_USER_HEADER]: DEFAULT_USER,
       [TRINO_SOURCE_HEADER]: options.source ?? DEFAULT_SOURCE,
       [TRINO_CATALOG_HEADER]: options.catalog,
@@ -208,7 +204,8 @@ class Client {
       .create(this.clientConfig)
       .request(cfg)
       .then(response => {
-        const reqHeaders: Headers = this.clientConfig.headers ?? {};
+        const reqHeaders: RawAxiosRequestHeaders =
+          this.clientConfig.headers ?? {};
         const respHeaders = response.headers;
         reqHeaders[TRINO_CATALOG_HEADER] =
           respHeaders[TRINO_SET_CATALOG_HEADER.toLowerCase()] ??
@@ -248,7 +245,7 @@ class Client {
    */
   async query(query: Query | string): Promise<Iterator<QueryResult>> {
     const req = typeof query === 'string' ? {query} : query;
-    const headers: Headers = {
+    const headers: RawAxiosRequestHeaders = {
       [TRINO_USER_HEADER]: req.user,
       [TRINO_CATALOG_HEADER]: req.catalog,
       [TRINO_SCHEMA_HEADER]: req.schema,
