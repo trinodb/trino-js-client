@@ -51,6 +51,7 @@ export type ConnectionOptions = {
   readonly auth?: Auth;
   readonly session?: Session;
   readonly extraCredential?: ExtraCredential;
+  readonly verify?: Boolean;
 };
 
 export type QueryStage = {
@@ -164,8 +165,14 @@ class Client {
   ) {}
 
   static create(options: ConnectionOptions): Client {
+    const https = require('https');
+    const agent = new https.Agent({
+      rejectUnauthorized: options.verify
+    })
+
     const clientConfig: AxiosRequestConfig = {
       baseURL: options.server ?? DEFAULT_SERVER,
+      httpsAgent: agent,
     };
 
     const headers: RawAxiosRequestHeaders = {
