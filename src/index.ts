@@ -1,4 +1,4 @@
-import axios, {AxiosRequestConfig, RawAxiosRequestHeaders} from 'axios';
+import axios, { AxiosRequestConfig, RawAxiosRequestHeaders } from 'axios';
 
 const DEFAULT_SERVER = 'http://localhost:8080';
 const DEFAULT_SOURCE = 'trino-js-client';
@@ -30,14 +30,14 @@ export interface Auth {
 
 export class BasicAuth implements Auth {
   readonly type: AuthType = 'basic';
-  constructor(readonly username: string, readonly password?: string) {}
+  constructor(readonly username: string, readonly password?: string) { }
 }
 
-export type Session = {[key: string]: string};
+export type Session = { [key: string]: string };
 
-export type ExtraCredential = {[key: string]: string};
+export type ExtraCredential = { [key: string]: string };
 
-const encodeAsString = (obj: {[key: string]: string}) => {
+const encodeAsString = (obj: { [key: string]: string }) => {
   return Object.entries(obj)
     .map(([key, value]) => `${key}=${value}`)
     .join(',');
@@ -51,7 +51,7 @@ export type ConnectionOptions = {
   readonly auth?: Auth;
   readonly session?: Session;
   readonly extraCredential?: ExtraCredential;
-  readonly verify?: Boolean;
+  readonly verifySSLCert?: Boolean;
 };
 
 export type QueryStage = {
@@ -95,7 +95,7 @@ export type QueryStats = {
   progressPercentage: number;
 };
 
-export type Columns = {name: string; type: string}[];
+export type Columns = { name: string; type: string }[];
 
 export type QueryData = any[];
 
@@ -162,12 +162,12 @@ class Client {
   private constructor(
     private readonly clientConfig: AxiosRequestConfig,
     private readonly options: ConnectionOptions
-  ) {}
+  ) { }
 
   static create(options: ConnectionOptions): Client {
     const https = require('https');
     const agent = new https.Agent({
-      rejectUnauthorized: options.verify
+      rejectUnauthorized: options.verifySSLCert
     })
 
     const clientConfig: AxiosRequestConfig = {
@@ -251,7 +251,7 @@ class Client {
    * @returns A promise that resolves to a QueryResult object.
    */
   async query(query: Query | string): Promise<Iterator<QueryResult>> {
-    const req = typeof query === 'string' ? {query} : query;
+    const req = typeof query === 'string' ? { query } : query;
     const headers: RawAxiosRequestHeaders = {
       [TRINO_USER_HEADER]: req.user,
       [TRINO_CATALOG_HEADER]: req.catalog,
@@ -278,7 +278,7 @@ class Client {
    * @returns The query info
    */
   async queryInfo(queryId: string): Promise<QueryInfo> {
-    return this.request({url: `/v1/query/${queryId}`, method: 'GET'});
+    return this.request({ url: `/v1/query/${queryId}`, method: 'GET' });
   }
 
   /**
@@ -287,14 +287,14 @@ class Client {
    * @returns The result of the query.
    */
   async cancel(queryId: string): Promise<QueryResult> {
-    return this.request({url: `/v1/query/${queryId}`, method: 'DELETE'}).then(
-      _ => <QueryResult>{id: queryId}
+    return this.request({ url: `/v1/query/${queryId}`, method: 'DELETE' }).then(
+      _ => <QueryResult>{ id: queryId }
     );
   }
 }
 
 export class Iterator<T> implements AsyncIterableIterator<T> {
-  constructor(private readonly iter: AsyncIterableIterator<T>) {}
+  constructor(private readonly iter: AsyncIterableIterator<T>) { }
 
   [Symbol.asyncIterator](): AsyncIterableIterator<T> {
     return this;
@@ -353,7 +353,7 @@ export class QueryIterator implements AsyncIterableIterator<QueryResult> {
   constructor(
     private readonly client: Client,
     private queryResult: QueryResult
-  ) {}
+  ) { }
 
   [Symbol.asyncIterator](): AsyncIterableIterator<QueryResult> {
     return this;
@@ -378,7 +378,7 @@ export class QueryIterator implements AsyncIterableIterator<QueryResult> {
    */
   async next(): Promise<IteratorResult<QueryResult>> {
     if (!this.hasNext()) {
-      return Promise.resolve({value: this.queryResult, done: true});
+      return Promise.resolve({ value: this.queryResult, done: true });
     }
 
     this.queryResult = await this.client.request<QueryResult>({
@@ -392,7 +392,7 @@ export class QueryIterator implements AsyncIterableIterator<QueryResult> {
       }
     }
 
-    return Promise.resolve({value: this.queryResult, done: false});
+    return Promise.resolve({ value: this.queryResult, done: false });
   }
 }
 
@@ -400,7 +400,7 @@ export class QueryIterator implements AsyncIterableIterator<QueryResult> {
  * Trino is a client for the Trino REST API.
  */
 export class Trino {
-  private constructor(private readonly client: Client) {}
+  private constructor(private readonly client: Client) { }
 
   static create(options: ConnectionOptions): Trino {
     return new Trino(Client.create(options));
