@@ -1,4 +1,5 @@
 import axios, { AxiosRequestConfig, RawAxiosRequestHeaders } from 'axios';
+import * as https from 'https'
 
 const DEFAULT_SERVER = 'http://localhost:8080';
 const DEFAULT_SOURCE = 'trino-js-client';
@@ -51,7 +52,7 @@ export type ConnectionOptions = {
   readonly auth?: Auth;
   readonly session?: Session;
   readonly extraCredential?: ExtraCredential;
-  readonly verifySSLCert?: Boolean;
+  readonly verifySSLCert?: boolean;
 };
 
 export type QueryStage = {
@@ -165,7 +166,6 @@ class Client {
   ) { }
 
   static create(options: ConnectionOptions): Client {
-    const https = require('https');
     const agent = new https.Agent({
       rejectUnauthorized: options.verifySSLCert
     })
