@@ -1,7 +1,6 @@
 import axios, {AxiosRequestConfig, RawAxiosRequestHeaders} from 'axios';
 import * as https from 'https'
 import * as fs from 'fs';
-import path from 'path';
 
 const DEFAULT_SERVER = 'http://localhost:8080';
 const DEFAULT_SOURCE = 'trino-js-client';
