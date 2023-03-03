@@ -1,10 +1,10 @@
 import axios, {AxiosRequestConfig, RawAxiosRequestHeaders} from 'axios';
-import * as https from 'https'
+import * as https from 'https';
+import * as tls from 'tls';
 
 const DEFAULT_SERVER = 'http://localhost:8080';
 const DEFAULT_SOURCE = 'trino-js-client';
 const DEFAULT_USER = process.env.USER;
-const DEFAULT_VERIFY_SSL_CERT = true;
 
 // Trino headers
 const TRINO_HEADER_PREFIX = 'X-Trino-';
@@ -45,6 +45,10 @@ const encodeAsString = (obj: {[key: string]: string}) => {
     .join(',');
 };
 
+export type SecureContextOptions = tls.SecureContextOptions & {
+  readonly rejectUnauthorized?: boolean;
+};
+
 export type ConnectionOptions = {
   readonly server?: string;
   readonly source?: string;
@@ -53,7 +57,7 @@ export type ConnectionOptions = {
   readonly auth?: Auth;
   readonly session?: Session;
   readonly extraCredential?: ExtraCredential;
-  readonly verifySSLCert?: boolean;
+  readonly ssl?: SecureContextOptions;
 };
 
 export type QueryStage = {
@@ -167,9 +171,7 @@ class Client {
   ) {}
 
   static create(options: ConnectionOptions): Client {
-    const agent = new https.Agent({
-      rejectUnauthorized: options.verifySSLCert ?? DEFAULT_VERIFY_SSL_CERT
-    });
+    const agent = new https.Agent(options.ssl ?? {});
 
     const clientConfig: AxiosRequestConfig = {
       baseURL: options.server ?? DEFAULT_SERVER,
