@@ -362,10 +362,6 @@ export class QueryIterator implements AsyncIterableIterator<QueryResult> {
     return this;
   }
 
-  async foobar(): Promise<number> {
-    return Promise.resolve(1);
-  }
-
   /**
    * It returns true if the queryResult object has a nextUri property, and false otherwise
    * @returns A boolean value.
