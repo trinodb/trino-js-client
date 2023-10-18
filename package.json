@@ -7,7 +7,11 @@
     "email": "oss@regadas.email",
     "url": "https://regadas.dev"
   },
-  "keywords": ["trino", "trinodb", "client"],
+  "keywords": [
+    "trino",
+    "trinodb",
+    "client"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/regadas/trino-js-client.git"
@@ -20,11 +24,13 @@
   "types": "dist/index.d.ts",
   "packageManager": "yarn@3.2.1",
   "license": "MIT",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
     "@types/jest": "^28.1.4",
     "@types/node": "^20.1.1",
-    "@typescript-eslint/eslint-plugin": "^5.33.0",
+    "@typescript-eslint/eslint-plugin": "^6.8.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.19.0",
     "eslint-config-prettier": "^9.0.0",
