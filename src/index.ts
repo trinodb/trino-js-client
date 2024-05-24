@@ -145,6 +145,7 @@ export type Query = {
   user?: string;
   session?: Session;
   extraCredential?: ExtraCredential;
+  additionalHeaders?: RawAxiosRequestHeaders;
 };
 
 /**
@@ -263,6 +264,7 @@ class Client {
       [TRINO_EXTRA_CREDENTIAL_HEADER]: encodeAsString(
         req.extraCredential ?? {}
       ),
+    ...("additionalHeaders" in req ? req.additionalHeaders : {})
     };
     const requestConfig = {
       method: 'POST',
