@@ -45,6 +45,10 @@ const encodeAsString = (obj: {[key: string]: string}) => {
     .join(',');
 };
 
+export type RequestHeaders = {
+  [key: string]: string;
+}
+
 export type SecureContextOptions = tls.SecureContextOptions & {
   readonly rejectUnauthorized?: boolean;
 };
@@ -145,7 +149,7 @@ export type Query = {
   user?: string;
   session?: Session;
   extraCredential?: ExtraCredential;
-  additionalHeaders?: RawAxiosRequestHeaders;
+  extraHeaders?: RequestHeaders;
 };
 
 /**
@@ -264,7 +268,7 @@ class Client {
       [TRINO_EXTRA_CREDENTIAL_HEADER]: encodeAsString(
         req.extraCredential ?? {}
       ),
-    ...("additionalHeaders" in req ? req.additionalHeaders : {})
+    ...(req.extraHeaders ?? {})
     };
     const requestConfig = {
       method: 'POST',
