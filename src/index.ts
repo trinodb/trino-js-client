@@ -176,7 +176,7 @@ class Client {
   ) {}
 
   static create(options: ConnectionOptions): Client {
-    const agent = new https.Agent(options.ssl ?? {});
+    const agent = new https.Agent({...(options.ssl ?? {}), keepAlive: true});
 
     const clientConfig: AxiosRequestConfig = {
       baseURL: options.server ?? DEFAULT_SERVER,
