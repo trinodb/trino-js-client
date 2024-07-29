@@ -66,4 +66,5 @@ const data: QueryData[] = await iter
 More usage examples can be found in the
 [integration tests](https://github.com/trinodb/trino-js-client/blob/main/tests/it/client.spec.ts).
 
-Filipe Regadas (regadas) 2022
+Copyright 
+[Trino JS Client contributors](https://github.com/trinodb/trino-js-client/graphs/contributors) 2022-present
