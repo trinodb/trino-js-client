@@ -23,7 +23,8 @@ A [Trino](https://trino.io) client for [Node.js](https://nodejs.org/).
 
 ## Usage
 
-For additional info on all available methods and types have a look at the `API` docs [here](https://regadas.dev/trino-js-client).
+For additional info on all available methods and types [have a look at the
+`API` documentation](https://trinodb.github.io/trino-js-client/).
 
 ### Create a Trino client
 
@@ -62,6 +63,7 @@ const data: QueryData[] = await iter
 
 ## Examples
 
-More usage [examples](https://github.com/regadas/trino-js-client/blob/main/tests/it/client.spec.ts) can be found in the [integration tests](https://github.com/regadas/trino-js-client/blob/main/tests/it/client.spec.ts).
+More usage examples can be found in the
+[integration tests](https://github.com/trinodb/trino-js-client/blob/main/tests/it/client.spec.ts).
 
 Filipe Regadas (regadas) 2022
