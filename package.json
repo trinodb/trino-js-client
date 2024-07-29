@@ -14,11 +14,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/regadas/trino-js-client.git"
+    "url": "https://github.com/trinodb/trino-js-client.git"
   },
-  "homepage": "https://regadas.dev/trino-js-client",
+  "homepage": "https://trinodb.github.io/trino-js-client",
   "bugs": {
-    "url": "https://github.com/regadas/trino-js-client/issues"
+    "url": "https://github.com/trinodb/trino-js-client/issues"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
