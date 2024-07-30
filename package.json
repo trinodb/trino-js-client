@@ -23,7 +23,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "packageManager": "yarn@3.2.1",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "files": [
     "dist"
   ],
