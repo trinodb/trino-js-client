@@ -3,7 +3,7 @@
 A [Trino](https://trino.io) client for [Node.js](https://nodejs.org/).
 
 [![@latest](https://img.shields.io/npm/v/trino-client.svg)](https://www.npmjs.com/package/trino-client)
-![it-tests](https://github.com/regadas/trino-js-client/actions/workflows/it-tests.yml/badge.svg)
+![it-tests](https://github.com/trinodb/trino-js-client/actions/workflows/it-tests.yml/badge.svg)
 ![license](https://img.shields.io/github/license/regadas/trino-js-client)
 
 ## Features
