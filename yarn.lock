@@ -964,11 +964,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*, @types/node@npm:^22.3.0":
-  version: 22.4.1
-  resolution: "@types/node@npm:22.4.1"
+  version: 22.5.2
+  resolution: "@types/node@npm:22.5.2"
   dependencies:
     undici-types: ~6.19.2
-  checksum: 341eb54867a3ec8eee7853ff9a9fc92d9f66305b70c9bc5db78492d51f4da3cd81e50c077f5d98eef1835fcbca00c58bb2a229ef56b0e377e48a3284401bf3f6
+  checksum: 5e47839dd1919b39927a5552137ded5d3f18d9ff7729083ba851d640a6a0997ee747b9e2cf4c8a1f8418ad92ef7f0ada4fdc2d005dad2efb39fa80a5c7f6d23d
   languageName: node
   linkType: hard
 
