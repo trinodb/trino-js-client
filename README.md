@@ -93,10 +93,81 @@ Lint the source code:
 yarn test:lint
 ```
 
-Build
+Build:
 
 ```shell
 yarn build
+```
+
+A successful build run does not produce any message on the terminal.
+
+## Integration test
+
+Integration tests run against a Trino server running on your workstation.
+
+Requirements:
+
+* [kind](https://kind.sigs.k8s.io/ )
+* [kubectl](https://kubernetes.io/docs/reference/kubectl/)
+
+Create a cluster:
+
+```shell
+kind create cluster
+```
+
+Deploy Trino:
+
+```shell
+kubectl apply -f tests/it/trino.yml
+```
+
+Wait for pods to be ready:
+
+```shell
+kubectl wait --for=condition=ready pods -n trino-system --all --timeout=120s
+```
+
+Ensure Trino is running and available on port `8080`. Run the following 
+command in a separate terminal:
+
+```shell
+kubectl -n trino-system port-forward svc/trino 8080:8080
+```
+
+Run tests:
+
+```shell
+yarn test:it --testTimeout=60000
+```
+
+Output should look similar to the following:
+
+```text
+ PASS  tests/it/client.spec.ts
+  trino
+    ✓ exhaust query results (1567 ms)
+    ✓ close running query (200 ms)
+    ✓ cancel running query (17 ms)
+    ✓ get query info (1 ms)
+    ✓ client extra header propagation
+    ✓ query request header propagation (88 ms)
+    ✓ QueryResult has error info
+    ✓ QueryInfo has failure info (1 ms)
+    ✓ prepare statement (98 ms)
+    ✓ multiple prepare statement (432 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       10 passed, 10 total
+Snapshots:   0 total
+Time:        3.457 s
+Ran all test suites matching /tests\/it/i.
+```
+
+Remove the cluster:
+
+```shell
+kind delete cluster
 ```
 
 ## Contributing
