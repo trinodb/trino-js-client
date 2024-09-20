@@ -72,5 +72,37 @@ const data: QueryData[] = await iter
 More usage examples can be found in the
 [integration tests](https://github.com/trinodb/trino-js-client/blob/main/tests/it/client.spec.ts).
 
+## Build
+
+Use the following commands to build the project locally with your modifications,
+and in preparation to contribute a pull request.
+
+Requirements:
+
+* yarn
+
+Install dependencies:
+
+```shell
+yarn install --frozen-lockfile
+```
+
+Lint the source code:
+
+```shell
+yarn test:lint
+```
+
+Build
+
+```shell
+yarn build
+```
+
+## Contributing
+
+Follow the [Trino contribution guidelines](https://trino.io/development/process)
+and contact us on Slack and GitHub.
+
 Copyright 
 [Trino JS Client contributors](https://github.com/trinodb/trino-js-client/graphs/contributors) 2022-present
