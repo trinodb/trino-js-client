@@ -62,6 +62,7 @@ export type ConnectionOptions = {
   readonly session?: Session;
   readonly extraCredential?: ExtraCredential;
   readonly ssl?: SecureContextOptions;
+  extraHeaders?: RequestHeaders;
 };
 
 export type QueryStage = {
@@ -192,6 +193,7 @@ class Client {
       [TRINO_EXTRA_CREDENTIAL_HEADER]: encodeAsString(
         options.extraCredential ?? {}
       ),
+      ...(options.extraHeaders ?? {}),
     };
 
     if (options.auth && options.auth.type === 'basic') {
