@@ -61,6 +61,7 @@ export type ConnectionOptions = {
   readonly auth?: Auth;
   readonly session?: Session;
   readonly extraCredential?: ExtraCredential;
+  readonly extraHeaders?: RequestHeaders;
   readonly ssl?: SecureContextOptions;
 };
 
@@ -192,6 +193,7 @@ class Client {
       [TRINO_EXTRA_CREDENTIAL_HEADER]: encodeAsString(
         options.extraCredential ?? {}
       ),
+      ...(options.extraHeaders ?? {})
     };
 
     if (options.auth && options.auth.type === 'basic') {
