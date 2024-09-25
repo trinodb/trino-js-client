@@ -85,7 +85,7 @@ Install dependencies:
 
 ```shell
 yarn install --frozen-lockfile
-```
+```        
 
 Lint the source code:
 
@@ -97,6 +97,35 @@ Build
 
 ```shell
 yarn build
+```
+
+## Integration test
+
+Integration tests run against a Trino server running on your workstation.
+
+Requirements:
+
+* docker and kind
+* kubectl
+
+Deploy Trino:
+
+```shell
+kubectl apply -f tests/it/trino.yml
+```
+
+Wait for pods to be ready:
+
+```shell
+kubectl wait --for=condition=ready pods -n trino-system --all --timeout=120s
+```
+
+Run tests:
+
+```shell
+kubectl -n trino-system port-forward svc/trino 8080:8080 > /dev/null &
+sleep 10 
+yarn test:it --testTimeout=60000
 ```
 
 ## Contributing
