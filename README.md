@@ -5,7 +5,7 @@ A [Trino](https://trino.io) client for [Node.js](https://nodejs.org/).
 > [!WARNING]
 > The project is currently undergoing a migration to the trinodb organization. 
 > Join us on [Trino Slack](https://trino.io/slack) in 
-> [#javascript-client](https://trinodb.slack.com/archives/C07F8VBS3K2), help us,
+> [#core-dev](https://trinodb.slack.com/archives/C07ABNN828M), help us,
 > and stay tuned.
 
 [![@latest](https://img.shields.io/npm/v/trino-client.svg)](https://www.npmjs.com/package/trino-client)
