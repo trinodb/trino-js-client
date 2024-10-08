@@ -4684,8 +4684,8 @@ __metadata:
   linkType: hard
 
 "typedoc@npm:^0.26.5":
-  version: 0.26.7
-  resolution: "typedoc@npm:0.26.7"
+  version: 0.26.8
+  resolution: "typedoc@npm:0.26.8"
   dependencies:
     lunr: ^2.3.9
     markdown-it: ^14.1.0
@@ -4696,7 +4696,7 @@ __metadata:
     typescript: 4.6.x || 4.7.x || 4.8.x || 4.9.x || 5.0.x || 5.1.x || 5.2.x || 5.3.x || 5.4.x || 5.5.x || 5.6.x
   bin:
     typedoc: bin/typedoc
-  checksum: 748e577d365b7357f25455c5ee0889b4c843675f4c3de007636188fc2b46fa245f66fd31b0f7596b3e1a9ca0cd04a403b01f6cb29c55e7fa3bc1e75981f38314
+  checksum: fe2a49591a2713c6c1bf9978c711ef125a158f6619301bea91627425a3cc063a65a089a536bf8a5d84520e2af8dda0ce832cb3ed3ecf0c8dca3a1b41bdf31639
   languageName: node
   linkType: hard
 
