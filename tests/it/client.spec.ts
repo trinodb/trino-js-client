@@ -71,6 +71,22 @@ describe('trino', () => {
     expect(info.query).toBe(singleCustomerQuery);
   });
 
+  test.concurrent('client extra header propagation', async () => {
+    const source = 'new-client';
+    const trino = Trino.create({
+      catalog: 'tpcds',
+      schema: 'sf100000',
+      auth: new BasicAuth('test'),
+      extraHeaders: {'X-Trino-Source': source},
+    });
+
+    const query = await trino.query(singleCustomerQuery);
+    const qr = await query.next();
+
+    const info: any = await trino.queryInfo(qr.value.id);
+    expect(info.session.source).toBe(source);
+  });
+
   test.concurrent('query request header propagation', async () => {
     const trino = Trino.create({catalog: 'tpcds', auth: new BasicAuth('test')});
     const query = await trino.query(useSchemaQuery);
