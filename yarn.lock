@@ -1122,20 +1122,30 @@ __metadata:
   linkType: hard
 
 "@typescript-eslint/parser@npm:^8.1.0":
-  version: 8.2.0
-  resolution: "@typescript-eslint/parser@npm:8.2.0"
+  version: 8.13.0
+  resolution: "@typescript-eslint/parser@npm:8.13.0"
   dependencies:
-    "@typescript-eslint/scope-manager": 8.2.0
-    "@typescript-eslint/types": 8.2.0
-    "@typescript-eslint/typescript-estree": 8.2.0
-    "@typescript-eslint/visitor-keys": 8.2.0
+    "@typescript-eslint/scope-manager": 8.13.0
+    "@typescript-eslint/types": 8.13.0
+    "@typescript-eslint/typescript-estree": 8.13.0
+    "@typescript-eslint/visitor-keys": 8.13.0
     debug: ^4.3.4
   peerDependencies:
     eslint: ^8.57.0 || ^9.0.0
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 3121ac888f080bafdb4e57c6bf949222d4756fcce617620af574a1b3fa93dec315098c70309849fcd0fdd70edcbbed33dd1f3b6320bb379016c6407de588b96e
+  checksum: 5e2d5b2eb5a30c4eeb75ab05975fd793c6d809399c5f000a918747283c760201311b1df85a699fd260a3d7cff1be5f39938d59a1d2f8e92141402bf32b4ad748
+  languageName: node
+  linkType: hard
+
+"@typescript-eslint/scope-manager@npm:8.13.0":
+  version: 8.13.0
+  resolution: "@typescript-eslint/scope-manager@npm:8.13.0"
+  dependencies:
+    "@typescript-eslint/types": 8.13.0
+    "@typescript-eslint/visitor-keys": 8.13.0
+  checksum: 7c80fddb07b3b4e77f05c3ad8aec9a4dda553638188618bc993352ed2b39a8db464c8f28dad8dfc4d82e06ac793fa83a9983198231a7a4711a0dc6f0955b8ad5
   languageName: node
   linkType: hard
 
@@ -1171,6 +1181,13 @@ __metadata:
     typescript:
       optional: true
   checksum: 98e369a49c4334d8871283f995f010ef38b023f80f922cfef60c21c635cf3a2992ce634613b931de129bb5f4d4939b36025f4cc5aa958bb21fee8eb4d8b78c60
+  languageName: node
+  linkType: hard
+
+"@typescript-eslint/types@npm:8.13.0":
+  version: 8.13.0
+  resolution: "@typescript-eslint/types@npm:8.13.0"
+  checksum: 361489858f07cba8a331d360d73b51a174a902612fd7bb212560a4d7dc2bd704daf252debc410b09e92217aedca9076c3b2892ec76bcf83a7e1575a175942c2e
   languageName: node
   linkType: hard
 
