@@ -62,7 +62,7 @@ export type ConnectionOptions = {
   readonly session?: Session;
   readonly extraCredential?: ExtraCredential;
   readonly ssl?: SecureContextOptions;
-  extraHeaders?: RequestHeaders;
+  readonly extraHeaders?: RequestHeaders;
 };
 
 export type QueryStage = {
