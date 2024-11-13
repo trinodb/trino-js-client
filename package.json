@@ -4,9 +4,9 @@
   "description": "Trino client library",
   "type": "module",
   "author": {
-    "name": "Filipe Regadas",
-    "email": "oss@regadas.email",
-    "url": "https://regadas.dev"
+    "name": "Trino Javascript contributors",
+    "email": "general@trino.io",
+    "url": "https://github.com/trinodb/trino-js-client/graphs/contributors"
   },
   "keywords": [
     "trino",
