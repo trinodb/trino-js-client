@@ -482,6 +482,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@eslint/js@npm:9.15.0":
+  version: 9.15.0
+  resolution: "@eslint/js@npm:9.15.0"
+  checksum: 8b2aa35b62c1969c5e3aa5e33b4e072cc450b95ee9bc08b5a84aa5cbed10a01a9a8f0463b8bb3768ceeb5abfaa82abfb95650061338c3b467835757b62ffc4ba
+  languageName: node
+  linkType: hard
+
 "@eslint/object-schema@npm:^2.1.4":
   version: 2.1.4
   resolution: "@eslint/object-schema@npm:2.1.4"
@@ -4697,7 +4704,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "trino-client@workspace:."
   dependencies:
-    "@eslint/js": 9.14.0
+    "@eslint/js": 9.15.0
     "@types/eslint__js": ^8.42.3
     "@types/jest": ^29.5.14
     "@types/node": ^22.3.0
