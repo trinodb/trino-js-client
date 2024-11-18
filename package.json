@@ -2,7 +2,6 @@
   "version": "0.2.4",
   "name": "trino-client",
   "description": "Trino client library",
-  "type": "module",
   "author": {
     "name": "Filipe Regadas",
     "email": "oss@regadas.email",
