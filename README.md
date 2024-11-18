@@ -177,3 +177,9 @@ and contact us on Slack and GitHub.
 
 Copyright 
 [Trino JS Client contributors](https://github.com/trinodb/trino-js-client/graphs/contributors) 2022-present
+
+## Releasing
+
+Releases are automated with GitHub Actions and only require a pull request
+that updates the version in `package.json`. For example, see
+[PR 723](https://github.com/trinodb/trino-js-client/pull/723)
