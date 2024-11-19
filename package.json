@@ -20,8 +20,8 @@
   "bugs": {
     "url": "https://github.com/trinodb/trino-js-client/issues"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "packageManager": "yarn@3.2.1",
   "license": "Apache-2.0",
   "files": [
