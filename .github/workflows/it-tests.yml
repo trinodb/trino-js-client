@@ -12,7 +12,7 @@ jobs:
       - name: Install Dependencies
         run: yarn install --frozen-lockfile
       - name: Create k8s Kind Cluster
-        uses: helm/kind-action@v1.10.0
+        uses: helm/kind-action@v1.11.0
         with:
           cluster_name: trino
       - name: Deploy trino
