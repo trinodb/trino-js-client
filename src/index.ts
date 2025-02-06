@@ -42,7 +42,12 @@ export class OAuth2Auth implements Auth {
     readonly clientId?: string,
     readonly clientSecret?: string,
     readonly refreshToken?: string,
-    readonly tokenEndpoint?: string
+    readonly tokenEndpoint?: string,
+    readonly scopes?: string[],
+    readonly tokenType?: string,
+    readonly expiresIn?: number,
+    readonly redirectUri?: string,
+    readonly grantType?: string
   ) {}
 }
 
@@ -221,6 +226,21 @@ class Client {
           }
           if (oauth2.tokenEndpoint) {
             headers['Token-Endpoint'] = oauth2.tokenEndpoint;
+          }
+          if (oauth2.scopes) {
+            headers['Scopes'] = oauth2.scopes.join(' ');
+          }
+          if (oauth2.tokenType) {
+            headers['Token-Type'] = oauth2.tokenType;
+          }
+          if (oauth2.expiresIn) {
+            headers['Expires-In'] = oauth2.expiresIn.toString();
+          }
+          if (oauth2.redirectUri) {
+            headers['Redirect-Uri'] = oauth2.redirectUri;
+          }
+          if (oauth2.grantType) {
+            headers['Grant-Type'] = oauth2.grantType;
           }
           break;
         default:
