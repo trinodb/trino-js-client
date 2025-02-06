@@ -15,7 +15,7 @@ A [Trino](https://trino.io) client for [Node.js](https://nodejs.org/).
 ## Features
 
 - Connections over HTTP or HTTPS
-- Supports HTTP Basic Authentication
+- Supports Basic and OAuth2 authentication types
 - Per-query user information for access control
 
 ## Requirements
@@ -65,6 +65,17 @@ for await (const queryResult of iter) {
 const data: QueryData[] = await iter
   .map(r => r.data ?? [])
   .fold<QueryData[]>([], (row, acc) => [...acc, ...row]);
+```
+
+### Using OAuth2 Authentication
+
+```typescript
+const trino: Trino = Trino.create({
+  server: 'http://localhost:8080',
+  catalog: 'tpcds',
+  schema: 'sf100000',
+  auth: new OAuth2Auth('token', 'clientId', 'clientSecret', 'refreshToken', 'tokenEndpoint'),
+});
 ```
 
 ## Examples
