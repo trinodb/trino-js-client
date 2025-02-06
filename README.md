@@ -13,7 +13,7 @@ this project.
 ## Features
 
 - Connections over HTTP or HTTPS
-- Supports all Trino authentication types (Basic, Kerberos, OAuth2, JWT)
+- Supports Basic and OAuth2 authentication types
 - Per-query user information for access control
 
 ## Requirements
@@ -65,17 +65,6 @@ const data: QueryData[] = await iter
   .fold<QueryData[]>([], (row, acc) => [...acc, ...row]);
 ```
 
-### Using Kerberos Authentication
-
-```typescript
-const trino: Trino = Trino.create({
-  server: 'http://localhost:8080',
-  catalog: 'tpcds',
-  schema: 'sf100000',
-  auth: new KerberosAuth('principal', 'keytab'),
-});
-```
-
 ### Using OAuth2 Authentication
 
 ```typescript
@@ -84,17 +73,6 @@ const trino: Trino = Trino.create({
   catalog: 'tpcds',
   schema: 'sf100000',
   auth: new OAuth2Auth('token'),
-});
-```
-
-### Using JWT Authentication
-
-```typescript
-const trino: Trino = Trino.create({
-  server: 'http://localhost:8080',
-  catalog: 'tpcds',
-  schema: 'sf100000',
-  auth: new JwtAuth('token'),
 });
 ```
 
