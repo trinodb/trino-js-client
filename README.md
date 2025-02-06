@@ -72,7 +72,7 @@ const trino: Trino = Trino.create({
   server: 'http://localhost:8080',
   catalog: 'tpcds',
   schema: 'sf100000',
-  auth: new OAuth2Auth('token'),
+  auth: new OAuth2Auth('token', 'clientId', 'clientSecret', 'refreshToken', 'tokenEndpoint'),
 });
 ```
 
