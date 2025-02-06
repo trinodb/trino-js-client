@@ -37,7 +37,13 @@ export class BasicAuth implements Auth {
 
 export class OAuth2Auth implements Auth {
   readonly type: AuthType = 'oauth2';
-  constructor(readonly token: string) {}
+  constructor(
+    readonly token: string,
+    readonly clientId?: string,
+    readonly clientSecret?: string,
+    readonly refreshToken?: string,
+    readonly tokenEndpoint?: string
+  ) {}
 }
 
 export type Session = {[key: string]: string};
@@ -148,16 +154,6 @@ export type QueryInfo = {
   failureInfo?: QueryFailureInfo;
 };
 
-export type Query = {
-  query: string;
-  catalog?: string;
-  schema?: string;
-  user?: string;
-  session?: Session;
-  extraCredential?: ExtraCredential;
-  extraHeaders?: RequestHeaders;
-};
-
 /**
  * It takes a Headers object and returns a new object with the same keys, but only the values that are
  * truthy
@@ -214,6 +210,18 @@ class Client {
         case 'oauth2':
           const oauth2: OAuth2Auth = <OAuth2Auth>options.auth;
           headers['Authorization'] = `Bearer ${oauth2.token}`;
+          if (oauth2.clientId) {
+            headers['Client-Id'] = oauth2.clientId;
+          }
+          if (oauth2.clientSecret) {
+            headers['Client-Secret'] = oauth2.clientSecret;
+          }
+          if (oauth2.refreshToken) {
+            headers['Refresh-Token'] = oauth2.refreshToken;
+          }
+          if (oauth2.tokenEndpoint) {
+            headers['Token-Endpoint'] = oauth2.tokenEndpoint;
+          }
           break;
         default:
           throw new Error(`Unsupported auth type: ${options.auth.type}`);
