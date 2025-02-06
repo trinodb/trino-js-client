@@ -15,7 +15,7 @@ A [Trino](https://trino.io) client for [Node.js](https://nodejs.org/).
 ## Features
 
 - Connections over HTTP or HTTPS
-- Supports HTTP Basic Authentication
+- Supports all Trino authentication types (Basic, Kerberos, OAuth2, JWT)
 - Per-query user information for access control
 
 ## Requirements
@@ -65,6 +65,39 @@ for await (const queryResult of iter) {
 const data: QueryData[] = await iter
   .map(r => r.data ?? [])
   .fold<QueryData[]>([], (row, acc) => [...acc, ...row]);
+```
+
+### Using Kerberos Authentication
+
+```typescript
+const trino: Trino = Trino.create({
+  server: 'http://localhost:8080',
+  catalog: 'tpcds',
+  schema: 'sf100000',
+  auth: new KerberosAuth('principal', 'keytab'),
+});
+```
+
+### Using OAuth2 Authentication
+
+```typescript
+const trino: Trino = Trino.create({
+  server: 'http://localhost:8080',
+  catalog: 'tpcds',
+  schema: 'sf100000',
+  auth: new OAuth2Auth('token'),
+});
+```
+
+### Using JWT Authentication
+
+```typescript
+const trino: Trino = Trino.create({
+  server: 'http://localhost:8080',
+  catalog: 'tpcds',
+  schema: 'sf100000',
+  auth: new JwtAuth('token'),
+});
 ```
 
 ## Examples

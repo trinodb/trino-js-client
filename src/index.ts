@@ -35,6 +35,21 @@ export class BasicAuth implements Auth {
   constructor(readonly username: string, readonly password?: string) {}
 }
 
+export class KerberosAuth implements Auth {
+  readonly type: AuthType = 'kerberos';
+  constructor(readonly principal: string, readonly keytab: string) {}
+}
+
+export class OAuth2Auth implements Auth {
+  readonly type: AuthType = 'oauth2';
+  constructor(readonly token: string) {}
+}
+
+export class JwtAuth implements Auth {
+  readonly type: AuthType = 'jwt';
+  constructor(readonly token: string) {}
+}
+
 export type Session = {[key: string]: string};
 
 export type ExtraCredential = {[key: string]: string};
@@ -196,14 +211,31 @@ class Client {
       ...(options.extraHeaders ?? {}),
     };
 
-    if (options.auth && options.auth.type === 'basic') {
-      const basic: BasicAuth = <BasicAuth>options.auth;
-      clientConfig.auth = {
-        username: basic.username,
-        password: basic.password ?? '',
-      };
-
-      headers[TRINO_USER_HEADER] = basic.username;
+    if (options.auth) {
+      switch (options.auth.type) {
+        case 'basic':
+          const basic: BasicAuth = <BasicAuth>options.auth;
+          clientConfig.auth = {
+            username: basic.username,
+            password: basic.password ?? '',
+          };
+          headers[TRINO_USER_HEADER] = basic.username;
+          break;
+        case 'kerberos':
+          const kerberos: KerberosAuth = <KerberosAuth>options.auth;
+          headers[TRINO_USER_HEADER] = kerberos.principal;
+          break;
+        case 'oauth2':
+          const oauth2: OAuth2Auth = <OAuth2Auth>options.auth;
+          headers['Authorization'] = `Bearer ${oauth2.token}`;
+          break;
+        case 'jwt':
+          const jwt: JwtAuth = <JwtAuth>options.auth;
+          headers['Authorization'] = `Bearer ${jwt.token}`;
+          break;
+        default:
+          throw new Error(`Unsupported auth type: ${options.auth.type}`);
+      }
     }
 
     clientConfig.headers = cleanHeaders(headers);

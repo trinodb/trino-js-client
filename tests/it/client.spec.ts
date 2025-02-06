@@ -1,4 +1,4 @@
-import {BasicAuth, QueryData, Trino} from '../../src';
+import {BasicAuth, KerberosAuth, OAuth2Auth, JwtAuth, QueryData, Trino} from '../../src';
 
 const allCustomerQuery = 'select * from customer';
 const limit = 1;
@@ -174,5 +174,50 @@ describe('trino', () => {
       ...(row.data ?? []),
     ]);
     expect(sales).toHaveLength(limit);
+  });
+
+  test.concurrent('kerberos auth', async () => {
+    const trino = Trino.create({
+      catalog: 'tpcds',
+      schema: 'sf100000',
+      auth: new KerberosAuth('principal', 'keytab'),
+    });
+
+    const iter = await trino.query(singleCustomerQuery);
+    const data = await iter
+      .map(r => r.data ?? [])
+      .fold<QueryData[]>([], (row, acc) => [...acc, ...row]);
+
+    expect(data).toHaveLength(limit);
+  });
+
+  test.concurrent('oauth2 auth', async () => {
+    const trino = Trino.create({
+      catalog: 'tpcds',
+      schema: 'sf100000',
+      auth: new OAuth2Auth('token'),
+    });
+
+    const iter = await trino.query(singleCustomerQuery);
+    const data = await iter
+      .map(r => r.data ?? [])
+      .fold<QueryData[]>([], (row, acc) => [...acc, ...row]);
+
+    expect(data).toHaveLength(limit);
+  });
+
+  test.concurrent('jwt auth', async () => {
+    const trino = Trino.create({
+      catalog: 'tpcds',
+      schema: 'sf100000',
+      auth: new JwtAuth('token'),
+    });
+
+    const iter = await trino.query(singleCustomerQuery);
+    const data = await iter
+      .map(r => r.data ?? [])
+      .fold<QueryData[]>([], (row, acc) => [...acc, ...row]);
+
+    expect(data).toHaveLength(limit);
   });
 });
