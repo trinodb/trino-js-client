@@ -477,6 +477,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@eslint/js@npm:*, @eslint/js@npm:9.22.0":
+  version: 9.22.0
+  resolution: "@eslint/js@npm:9.22.0"
+  checksum: 3eb6ed01c31f185b1822b78a872af5b87daa4aaf2ed753ce81c0c7227c852a09e1c7356103259f35f09e77d9e116c796cec6958702044d057f0c179b53b783ec
+  languageName: node
+  linkType: hard
+
 "@eslint/js@npm:9.17.0":
   version: 9.17.0
   resolution: "@eslint/js@npm:9.17.0"
@@ -1042,26 +1049,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/eslint@npm:*":
-  version: 9.6.1
-  resolution: "@types/eslint@npm:9.6.1"
+"@types/eslint__js@npm:^9.14.0":
+  version: 9.14.0
+  resolution: "@types/eslint__js@npm:9.14.0"
   dependencies:
-    "@types/estree": "*"
-    "@types/json-schema": "*"
-  checksum: c286e79707ab604b577cf8ce51d9bbb9780e3d6a68b38a83febe13fa05b8012c92de17c28532fac2b03d3c460123f5055d603a579685325246ca1c86828223e0
+    "@eslint/js": "*"
+  checksum: 2bffe2e3d9401b6a530ba7fe8961ea786a6cf520abe11ef59435934df593fdd927c3cb3ac7afcd1c77961f0fab9a99d0d86b678f1124a96402105fd43309d38c
   languageName: node
   linkType: hard
 
-"@types/eslint__js@npm:^8.42.3":
-  version: 8.42.3
-  resolution: "@types/eslint__js@npm:8.42.3"
-  dependencies:
-    "@types/eslint": "*"
-  checksum: e31f19de642d35a664695d0cab873ce6de19b8a3506755835b91f8a49a8c41099dcace449df49f1a486de6fa6565d21ceb1fa33be6004fc7adef9226e5d256a1
-  languageName: node
-  linkType: hard
-
-"@types/estree@npm:*, @types/estree@npm:^1.0.6":
+"@types/estree@npm:^1.0.6":
   version: 1.0.6
   resolution: "@types/estree@npm:1.0.6"
   checksum: 8825d6e729e16445d9a1dd2fb1db2edc5ed400799064cd4d028150701031af012ba30d6d03fe9df40f4d7a437d0de6d2b256020152b7b09bde9f2e420afdffd9
@@ -1121,7 +1118,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/json-schema@npm:*, @types/json-schema@npm:^7.0.15":
+"@types/json-schema@npm:^7.0.15":
   version: 7.0.15
   resolution: "@types/json-schema@npm:7.0.15"
   checksum: 97ed0cb44d4070aecea772b7b2e2ed971e10c81ec87dd4ecc160322ffa55ff330dace1793489540e3e318d90942064bb697cc0f8989391797792d919737b3b98
@@ -4529,8 +4526,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "trino-client@workspace:."
   dependencies:
-    "@eslint/js": 9.17.0
-    "@types/eslint__js": ^8.42.3
+    "@eslint/js": 9.22.0
+    "@types/eslint__js": ^9.14.0
     "@types/jest": ^29.5.14
     "@types/node": ^22.3.0
     axios: 1.8.3
