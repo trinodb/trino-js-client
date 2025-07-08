@@ -1156,12 +1156,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^22.3.0":
+"@types/node@npm:*":
   version: 22.15.3
   resolution: "@types/node@npm:22.15.3"
   dependencies:
     undici-types: ~6.21.0
   checksum: 26618a9fdfb84de3841e898b7c5fd372e1c0bdb9adc3ec71c12c38dd07d4e73da14681924919d27ff509ebf3714b8de941a21f51c26146cc8aaae31561ca7a5c
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^24.0.11":
+  version: 24.0.11
+  resolution: "@types/node@npm:24.0.11"
+  dependencies:
+    undici-types: ~7.8.0
+  checksum: c674ca541b3e112595783fee52b48219b1442d3fbc5bb8c2d922148718b099a9cb19b0698ac48d0bcbfc0b98073d27226c11add1408f5eb459a5d9dea2803385
   languageName: node
   linkType: hard
 
@@ -4570,7 +4579,7 @@ __metadata:
     "@eslint/js": 9.25.1
     "@types/eslint__js": ^8.42.3
     "@types/jest": ^29.5.14
-    "@types/node": ^22.3.0
+    "@types/node": ^24.0.11
     axios: 1.9.0
     eslint: 9.25.1
     eslint-plugin-jest: ^28.9.0
@@ -4771,6 +4780,13 @@ __metadata:
   version: 6.21.0
   resolution: "undici-types@npm:6.21.0"
   checksum: 46331c7d6016bf85b3e8f20c159d62f5ae471aba1eb3dc52fff35a0259d58dcc7d592d4cc4f00c5f9243fa738a11cfa48bd20203040d4a9e6bc25e807fab7ab3
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~7.8.0":
+  version: 7.8.0
+  resolution: "undici-types@npm:7.8.0"
+  checksum: 59521a5b9b50e72cb838a29466b3557b4eacbc191a83f4df5a2f7b156bc8263072b145dc4bb8ec41da7d56a7e9b178892458da02af769243d57f801a50ac5751
   languageName: node
   linkType: hard
 
