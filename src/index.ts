@@ -159,6 +159,16 @@ export type QueryInfo = {
   failureInfo?: QueryFailureInfo;
 };
 
+export type Query = {
+  query: string;
+  catalog?: string;
+  schema?: string;
+  user?: string;
+  session?: Session;
+  extraCredential?: ExtraCredential;
+  extraHeaders?: RequestHeaders;
+};
+
 /**
  * It takes a Headers object and returns a new object with the same keys, but only the values that are
  * truthy
@@ -204,7 +214,7 @@ class Client {
 
     if (options.auth) {
       switch (options.auth.type) {
-        case 'basic':
+        case 'basic': {
           const basic: BasicAuth = <BasicAuth>options.auth;
           clientConfig.auth = {
             username: basic.username,
@@ -212,7 +222,8 @@ class Client {
           };
           headers[TRINO_USER_HEADER] = basic.username;
           break;
-        case 'oauth2':
+        }
+        case 'oauth2': {
           const oauth2: OAuth2Auth = <OAuth2Auth>options.auth;
           headers['Authorization'] = `Bearer ${oauth2.token}`;
           if (oauth2.clientId) {
@@ -243,6 +254,7 @@ class Client {
             headers['Grant-Type'] = oauth2.grantType;
           }
           break;
+        }
         default:
           throw new Error(`Unsupported auth type: ${options.auth.type}`);
       }
