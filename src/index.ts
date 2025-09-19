@@ -35,6 +35,22 @@ export class BasicAuth implements Auth {
   constructor(readonly username: string, readonly password?: string) {}
 }
 
+export class OAuth2Auth implements Auth {
+  readonly type: AuthType = 'oauth2';
+  constructor(
+    readonly token: string,
+    readonly clientId?: string,
+    readonly clientSecret?: string,
+    readonly refreshToken?: string,
+    readonly tokenEndpoint?: string,
+    readonly scopes?: string[],
+    readonly tokenType?: string,
+    readonly expiresIn?: number,
+    readonly redirectUri?: string,
+    readonly grantType?: string
+  ) {}
+}
+
 export type Session = {[key: string]: string};
 
 export type ExtraCredential = {[key: string]: string};
@@ -196,14 +212,52 @@ class Client {
       ...(options.extraHeaders ?? {}),
     };
 
-    if (options.auth && options.auth.type === 'basic') {
-      const basic: BasicAuth = <BasicAuth>options.auth;
-      clientConfig.auth = {
-        username: basic.username,
-        password: basic.password ?? '',
-      };
-
-      headers[TRINO_USER_HEADER] = basic.username;
+    if (options.auth) {
+      switch (options.auth.type) {
+        case 'basic': {
+          const basic: BasicAuth = <BasicAuth>options.auth;
+          clientConfig.auth = {
+            username: basic.username,
+            password: basic.password ?? '',
+          };
+          headers[TRINO_USER_HEADER] = basic.username;
+          break;
+        }
+        case 'oauth2': {
+          const oauth2: OAuth2Auth = <OAuth2Auth>options.auth;
+          headers['Authorization'] = `Bearer ${oauth2.token}`;
+          if (oauth2.clientId) {
+            headers['Client-Id'] = oauth2.clientId;
+          }
+          if (oauth2.clientSecret) {
+            headers['Client-Secret'] = oauth2.clientSecret;
+          }
+          if (oauth2.refreshToken) {
+            headers['Refresh-Token'] = oauth2.refreshToken;
+          }
+          if (oauth2.tokenEndpoint) {
+            headers['Token-Endpoint'] = oauth2.tokenEndpoint;
+          }
+          if (oauth2.scopes) {
+            headers['Scopes'] = oauth2.scopes.join(' ');
+          }
+          if (oauth2.tokenType) {
+            headers['Token-Type'] = oauth2.tokenType;
+          }
+          if (oauth2.expiresIn) {
+            headers['Expires-In'] = oauth2.expiresIn.toString();
+          }
+          if (oauth2.redirectUri) {
+            headers['Redirect-Uri'] = oauth2.redirectUri;
+          }
+          if (oauth2.grantType) {
+            headers['Grant-Type'] = oauth2.grantType;
+          }
+          break;
+        }
+        default:
+          throw new Error(`Unsupported auth type: ${options.auth.type}`);
+      }
     }
 
     clientConfig.headers = cleanHeaders(headers);
