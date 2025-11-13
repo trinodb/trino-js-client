@@ -35,6 +35,12 @@ export class BasicAuth implements Auth {
   constructor(readonly username: string, readonly password?: string) {}
 }
 
+export class JwtAuth implements Auth {
+  readonly type: AuthType = 'bearer';
+  constructor(readonly jwt: string) {}
+}
+
+
 export type Session = {[key: string]: string};
 
 export type ExtraCredential = {[key: string]: string};
@@ -170,9 +176,9 @@ const cleanHeaders = (headers: RawAxiosRequestHeaders) => {
 };
 
 /* It's a wrapper around the Axios library that adds some Trino specific headers to the requests */
-class Client {
+export class Client {
   private constructor(
-    private readonly clientConfig: AxiosRequestConfig,
+    readonly clientConfig: AxiosRequestConfig,
     private readonly options: ConnectionOptions
   ) {}
 
@@ -204,6 +210,10 @@ class Client {
       };
 
       headers[TRINO_USER_HEADER] = basic.username;
+    }
+    else if (options.auth && options.auth.type === 'bearer') {
+      const jwt: JwtAuth = <JwtAuth>options.auth;
+      headers.Authorization = `Bearer ${jwt.jwt}`;
     }
 
     clientConfig.headers = cleanHeaders(headers);
