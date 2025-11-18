@@ -1,4 +1,4 @@
-import {BasicAuth, QueryData, Trino} from '../../src';
+import {BasicAuth, JwtAuth, QueryData, Trino, Client} from '../../src';
 
 const allCustomerQuery = 'select * from customer';
 const limit = 1;
@@ -174,5 +174,24 @@ describe('trino', () => {
       ...(row.data ?? []),
     ]);
     expect(sales).toHaveLength(limit);
+  });
+
+  test.concurrent('Check JWT authentication', async () => {
+    const trino = Trino.create({
+      catalog: 'tpcds',
+      schema: 'sf100000',
+      auth: new JwtAuth('test-jwt-token'),
+    });
+    const query = await trino.query("select 1");
+  });
+
+  test.concurrent('Check Client has correct auth for JWT', async () => {
+    const client = Client.create({
+      catalog: 'tpcds',
+      schema: 'sf100000',
+      auth: new JwtAuth('test-jwt-token'),
+    });
+    const actualAuth = client.clientConfig.headers?.Authorization 
+    expect(actualAuth).toBe('Bearer test-jwt-token');
   });
 });
