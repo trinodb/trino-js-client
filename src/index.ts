@@ -1,5 +1,4 @@
-import axios, {AxiosRequestConfig, RawAxiosRequestHeaders} from 'axios';
-import * as https from 'https';
+import {Agent, type Dispatcher} from 'undici';
 import * as tls from 'tls';
 
 const DEFAULT_SERVER = 'http://localhost:8080';
@@ -153,14 +152,23 @@ export type Query = {
   extraHeaders?: RequestHeaders;
 };
 
+type HeaderBag = Record<string, string | undefined>;
+
+type RequestConfig = {
+  url: string;
+  method?: string;
+  headers?: HeaderBag;
+  body?: string;
+};
+
 /**
  * It takes a Headers object and returns a new object with the same keys, but only the values that are
  * truthy
- * @param {RawAxiosRequestHeaders} headers - RawAxiosRequestHeaders - The headers object to be sanitized.
+ * @param {HeaderBag} headers - The headers object to be sanitized.
  * @returns An object with the key-value pairs of the headers object, but only if the value is truthy.
  */
-const cleanHeaders = (headers: RawAxiosRequestHeaders) => {
-  const sanitizedHeaders: RawAxiosRequestHeaders = {};
+const cleanHeaders = (headers: HeaderBag): HeaderBag => {
+  const sanitizedHeaders: HeaderBag = {};
   for (const [key, value] of Object.entries(headers)) {
     if (value) {
       sanitizedHeaders[key] = value;
@@ -169,22 +177,36 @@ const cleanHeaders = (headers: RawAxiosRequestHeaders) => {
   return sanitizedHeaders;
 };
 
-/* It's a wrapper around the Axios library that adds some Trino specific headers to the requests */
+const toFetchHeaders = (headers: HeaderBag): Record<string, string> => {
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(headers)) {
+    if (value) {
+      out[key] = value;
+    }
+  }
+  return out;
+};
+
+/* It's a wrapper around fetch that adds some Trino specific headers to the requests */
 class Client {
+  private headers: HeaderBag;
+
   private constructor(
-    private readonly clientConfig: AxiosRequestConfig,
+    private readonly baseURL: string,
+    private readonly dispatcher: Dispatcher | undefined,
+    initialHeaders: HeaderBag,
     private readonly options: ConnectionOptions
-  ) {}
+  ) {
+    this.headers = initialHeaders;
+  }
 
   static create(options: ConnectionOptions): Client {
-    const agent = new https.Agent(options.ssl ?? {});
+    const baseURL = options.server ?? DEFAULT_SERVER;
+    const dispatcher = options.ssl
+      ? new Agent({connect: options.ssl})
+      : undefined;
 
-    const clientConfig: AxiosRequestConfig = {
-      baseURL: options.server ?? DEFAULT_SERVER,
-      httpsAgent: agent,
-    };
-
-    const headers: RawAxiosRequestHeaders = {
+    const headers: HeaderBag = {
       [TRINO_USER_HEADER]: DEFAULT_USER,
       [TRINO_SOURCE_HEADER]: options.source ?? DEFAULT_SOURCE,
       [TRINO_CATALOG_HEADER]: options.catalog,
@@ -198,61 +220,76 @@ class Client {
 
     if (options.auth && options.auth.type === 'basic') {
       const basic: BasicAuth = <BasicAuth>options.auth;
-      clientConfig.auth = {
-        username: basic.username,
-        password: basic.password ?? '',
-      };
-
+      const token = Buffer.from(
+        `${basic.username}:${basic.password ?? ''}`
+      ).toString('base64');
+      headers['Authorization'] = `Basic ${token}`;
       headers[TRINO_USER_HEADER] = basic.username;
     }
 
-    clientConfig.headers = cleanHeaders(headers);
-
-    return new Client(clientConfig, options);
+    return new Client(baseURL, dispatcher, cleanHeaders(headers), options);
   }
 
   /**
    * Generic method to send a request to the server.
-   * @param cfg - AxiosRequestConfig<any>
+   * @param cfg - The request configuration.
    * @returns The response data.
    */
-  async request<T>(cfg: AxiosRequestConfig<unknown>): Promise<T> {
-    return axios
-      .create(this.clientConfig)
-      .request(cfg)
-      .then(response => {
-        const reqHeaders: RawAxiosRequestHeaders =
-          this.clientConfig.headers ?? {};
-        const respHeaders = response.headers;
-        reqHeaders[TRINO_CATALOG_HEADER] =
-          respHeaders[TRINO_SET_CATALOG_HEADER.toLowerCase()] ??
-          reqHeaders[TRINO_CATALOG_HEADER] ??
-          this.options.catalog;
-        reqHeaders[TRINO_SCHEMA_HEADER] =
-          respHeaders[TRINO_SET_SCHEMA_HEADER.toLowerCase()] ??
-          reqHeaders[TRINO_SCHEMA_HEADER] ??
-          this.options.schema;
-        reqHeaders[TRINO_SESSION_HEADER] =
-          respHeaders[TRINO_SET_SESSION_HEADER.toLowerCase()] ??
-          reqHeaders[TRINO_SESSION_HEADER] ??
-          encodeAsString(this.options.session ?? {});
+  async request<T>(cfg: RequestConfig): Promise<T> {
+    const url = new URL(cfg.url, this.baseURL).toString();
+    const mergedHeaders: HeaderBag = {
+      ...this.headers,
+      ...(cfg.headers ?? {}),
+    };
 
-        if (TRINO_CLEAR_SESSION_HEADER.toLowerCase() in respHeaders) {
-          reqHeaders[TRINO_SESSION_HEADER] = undefined;
-        }
+    const init: RequestInit & {dispatcher?: Dispatcher} = {
+      method: cfg.method ?? 'GET',
+      headers: toFetchHeaders(mergedHeaders),
+    };
+    if (cfg.body !== undefined) {
+      init.body = cfg.body;
+    }
+    if (this.dispatcher) {
+      init.dispatcher = this.dispatcher;
+    }
 
-        if (TRINO_ADDED_PREPARE_HEADER.toLowerCase() in respHeaders) {
-          const prep = reqHeaders[TRINO_PREPARED_STATEMENT_HEADER];
+    const response = await fetch(url, init);
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Trino ${response.status}: ${text}`);
+    }
 
-          reqHeaders[TRINO_PREPARED_STATEMENT_HEADER] =
-            (prep ? prep + ',' : '') +
-            respHeaders[TRINO_ADDED_PREPARE_HEADER.toLowerCase()];
-        }
+    const reqHeaders: HeaderBag = {...this.headers};
+    const respHeaders = response.headers;
 
-        this.clientConfig.headers = cleanHeaders(reqHeaders);
+    reqHeaders[TRINO_CATALOG_HEADER] =
+      respHeaders.get(TRINO_SET_CATALOG_HEADER.toLowerCase()) ??
+      reqHeaders[TRINO_CATALOG_HEADER] ??
+      this.options.catalog;
+    reqHeaders[TRINO_SCHEMA_HEADER] =
+      respHeaders.get(TRINO_SET_SCHEMA_HEADER.toLowerCase()) ??
+      reqHeaders[TRINO_SCHEMA_HEADER] ??
+      this.options.schema;
+    reqHeaders[TRINO_SESSION_HEADER] =
+      respHeaders.get(TRINO_SET_SESSION_HEADER.toLowerCase()) ??
+      reqHeaders[TRINO_SESSION_HEADER] ??
+      encodeAsString(this.options.session ?? {});
 
-        return response.data;
-      });
+    if (respHeaders.has(TRINO_CLEAR_SESSION_HEADER.toLowerCase())) {
+      reqHeaders[TRINO_SESSION_HEADER] = undefined;
+    }
+
+    if (respHeaders.has(TRINO_ADDED_PREPARE_HEADER.toLowerCase())) {
+      const prep = reqHeaders[TRINO_PREPARED_STATEMENT_HEADER];
+      reqHeaders[TRINO_PREPARED_STATEMENT_HEADER] =
+        (prep ? prep + ',' : '') +
+        respHeaders.get(TRINO_ADDED_PREPARE_HEADER.toLowerCase());
+    }
+
+    this.headers = cleanHeaders(reqHeaders);
+
+    const text = await response.text();
+    return (text ? JSON.parse(text) : undefined) as T;
   }
 
   /**
@@ -262,7 +299,7 @@ class Client {
    */
   async query(query: Query | string): Promise<Iterator<QueryResult>> {
     const req = typeof query === 'string' ? {query} : query;
-    const headers: RawAxiosRequestHeaders = {
+    const headers: HeaderBag = {
       [TRINO_USER_HEADER]: req.user,
       [TRINO_CATALOG_HEADER]: req.catalog,
       [TRINO_SCHEMA_HEADER]: req.schema,
@@ -270,12 +307,12 @@ class Client {
       [TRINO_EXTRA_CREDENTIAL_HEADER]: encodeAsString(
         req.extraCredential ?? {}
       ),
-    ...(req.extraHeaders ?? {})
+      ...(req.extraHeaders ?? {}),
     };
-    const requestConfig = {
+    const requestConfig: RequestConfig = {
       method: 'POST',
       url: '/v1/statement',
-      data: req.query,
+      body: req.query,
       headers: cleanHeaders(headers),
     };
     return this.request<QueryResult>(requestConfig).then(
@@ -389,7 +426,7 @@ export class QueryIterator implements AsyncIterableIterator<QueryResult> {
     }
 
     this.queryResult = await this.client.request<QueryResult>({
-      url: this.queryResult.nextUri,
+      url: this.queryResult.nextUri!,
     });
 
     const data = this.queryResult.data ?? [];
