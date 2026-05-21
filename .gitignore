@@ -1,4 +1,4 @@
-.DS_Store
+/.DS_Store
 .idea
 
 .log
@@ -19,3 +19,4 @@ docs
 .pnp.*
 
 node_modules
+/CLAUDE.md
