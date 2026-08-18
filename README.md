@@ -6,7 +6,7 @@ Join us on [Trino Slack](https://trino.io/slack) in
 [#core-dev](https://trinodb.slack.com/archives/C07ABNN828M) to discuss and help
 this project.
 
-[![@latest](https://img.shields.io/npm/v/trino-client.svg)](https://www.npmjs.com/package/trino-client)
+[![@latest](https://img.shields.io/npm/v/@trinodb/trino-js-client.svg)](https://www.npmjs.com/package/@trinodb/trino-js-client)
 ![it-tests](https://github.com/trinodb/trino-js-client/actions/workflows/it-tests.yml/badge.svg)
 ![license](https://img.shields.io/github/license/trinodb/trino-js-client)
 
@@ -23,7 +23,11 @@ this project.
 
 ## Install
 
-`npm install trino-client` or `yarn add trino-client`
+`npm install @trinodb/trino-js-client` or `yarn add @trinodb/trino-js-client`
+
+Versions up to and including 0.2.9 were published as `trino-client`, without a
+scope. The scoped name starts at 0.3.0. Update the dependency name to keep
+receiving new releases.
 
 ## Usage
 
@@ -178,6 +182,38 @@ Copyright
 
 ## Releasing
 
-Releases are automated with GitHub Actions and only require a pull request
-that updates the version in `package.json`. For example, see
-[PR 723](https://github.com/trinodb/trino-js-client/pull/723)
+Releases are fully automated with GitHub Actions. A release needs nothing
+beyond a merged pull request that updates the version.
+
+1. Update the `version` field in `package.json` to the version you are about to
+   release. Nothing else needs to change, since the lockfile records the
+   workspace as `0.0.0-use.local` rather than the released version.
+2. Commit the change on a branch, with `Release trino-js-client <version>` as
+   the commit message, and open a pull request.
+3. Merge the pull request once it is approved and the checks pass.
+
+Merging runs the `release` workflow, which compares the version in
+`package.json` against the preceding commit. When the version changed, the
+workflow publishes the package to npm and then creates a GitHub release, tagged
+with the version prefixed with `v`, and with generated release notes. A merge
+that leaves the version untouched publishes nothing.
+
+Watch the run to confirm that it succeeds, and check that the new version
+appears on
+[npm](https://www.npmjs.com/package/@trinodb/trino-js-client).
+
+Publishing uses
+[npm trusted publishing](https://docs.npmjs.com/trusted-publishers/) with
+OpenID Connect, so no npm token is stored in this repository. npm verifies the
+identity of the workflow directly and attaches a provenance attestation to
+every published version. The trusted publisher is configured in the package
+settings on npmjs.com and must match this repository and the `release.yml`
+workflow file name. Renaming that file breaks publishing until the
+configuration is updated to match.
+
+Publishing a package under a name that does not exist on npm yet is the one
+case this does not cover, because trusted publishing attaches its configuration
+to an existing package. The first version under a new name has to be published
+by a maintainer with access to the `@trinodb` scope, with
+`yarn npm publish --no-provenance`, since provenance is only available from a
+supported continuous integration environment.

@@ -1,11 +1,15 @@
 {
-  "version": "0.2.9",
-  "name": "trino-client",
+  "version": "0.3.1",
+  "name": "@trinodb/trino-js-client",
   "description": "Trino client library",
   "author": {
     "name": "Trino Javascript contributors",
     "email": "general@trino.io",
     "url": "https://github.com/trinodb/trino-js-client/graphs/contributors"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "keywords": [
     "trino",
