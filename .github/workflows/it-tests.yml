@@ -10,7 +10,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.13.0
         with:
