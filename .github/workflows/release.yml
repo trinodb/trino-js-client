@@ -1,23 +1,50 @@
-name: Publish Package to npmjs
+name: Release and Publish
+
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write # Required for OIDC/Trusted Publishing
+  contents: write # Required to create the GitHub release
+
 jobs:
-  build:
+  release-and-publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v6
+      - name: Checkout repo
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - id: version
+        uses: EndBug/version-check@v3
+        with:
+          file-name: package.json
+          diff-search: true
+
+      - if: steps.version.outputs.changed == 'true'
+        uses: actions/setup-node@v6
         with:
           node-version: "24.x"
           registry-url: "https://registry.npmjs.org"
-      - name: Install Dependencies
+
+      - if: steps.version.outputs.changed == 'true'
+        name: Install dependencies
         run: yarn install --immutable
-      # Writes token to .yarnrc.yml
-      - name: Setup NPM auth token
-        run: |
-          echo npmAuthToken: "${NODE_AUTH_TOKEN}" >> ./.yarnrc.yml
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - run: yarn publish
+
+      - if: steps.version.outputs.changed == 'true'
+        name: Publish to npm
+        # Runs the publish script, which builds the package and then runs
+        # yarn npm publish. Authentication uses trusted publishing with OIDC,
+        # so no npm token is involved.
+        run: yarn publish
+
+      - if: steps.version.outputs.changed == 'true'
+        name: Create GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          generate_release_notes: true
