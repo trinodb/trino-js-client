@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+  pull_request:
 permissions:
   contents: write
 jobs:
@@ -16,6 +17,7 @@ jobs:
       - name: Build
         run: yarn typedoc --out docs src/index.ts
       - name: Deploy
+        if: github.event_name == 'push'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
