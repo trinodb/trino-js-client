@@ -180,6 +180,17 @@ and contact us on Slack and GitHub.
 Copyright 
 [Trino JS Client contributors](https://github.com/trinodb/trino-js-client/graphs/contributors) 2022-present
 
+## Versioning
+
+From 1.0.0 onward every release increments the major version. Version 1.0.0 is
+followed by 2.0.0, then 3.0.0, with no compatibility implied between them. The
+scheme mirrors the way Trino itself numbers releases, and it sets the
+expectation that each version is its own upgrade. Read the release notes rather
+than the version number to find out what changed.
+
+Releases before 1.0.0 used ordinary semantic versioning, and versions up to and
+including 0.2.9 were published under the unscoped name `trino-client`.
+
 ## Releasing
 
 Releases are fully automated with GitHub Actions. A release needs nothing
