@@ -53,6 +53,7 @@
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
     "test:it": "jest --testPathPatterns tests/it",
+    "test:compat": "bash tests/compat/run.sh",
     "test:lint": "eslint . --flag unstable_ts_config",
     "publish": "yarn build && yarn npm publish"
   }
