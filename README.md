@@ -18,7 +18,8 @@ this project.
 
 ## Requirements
 
-- Node 12 or newer.
+- Node 24 or newer. This is what the tests run against. Older and newer
+  versions may work, but are not tested.
 - Trino 0.16x or newer.
 
 ## Install
