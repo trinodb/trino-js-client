@@ -203,7 +203,7 @@ class Client {
         password: basic.password ?? '',
       };
 
-      headers[TRINO_USER_HEADER] = basic.username;
+      headers[TRINO_USER_HEADER] = options.extraHeaders?.[TRINO_USER_HEADER] ?? basic.username;
     }
 
     clientConfig.headers = cleanHeaders(headers);
