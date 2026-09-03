@@ -28,6 +28,22 @@ jobs:
           kubectl -n trino-system port-forward svc/trino 8080:8080 > /dev/null &
           sleep 10 # give it a little bit more time to start
           yarn test:it --testTimeout=60000
+      - name: Downstream compatibility tests
+        run: |
+          # A background forward from an earlier step does not reliably
+          # survive into this one, and starting a second one while the first
+          # is still alive fails to bind. Either way one of them ends up
+          # listening, so wait for the port to answer rather than guessing at
+          # a delay, and fail the step if it never does.
+          kubectl -n trino-system port-forward svc/trino 8080:8080 > /dev/null 2>&1 &
+          for _ in $(seq 1 30); do
+            if curl -sf http://localhost:8080/v1/info | grep -q '"starting":false'; then
+              break
+            fi
+            sleep 2
+          done
+          curl -sf http://localhost:8080/v1/info | grep -q '"starting":false'
+          yarn test:compat
 
   # Guards the compatibility claim in the README. The client protocol is
   # stable, so an older Trino is expected to keep working; this proves it
