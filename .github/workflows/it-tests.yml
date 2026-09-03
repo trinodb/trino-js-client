@@ -10,6 +10,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24.x"
       - name: Install Dependencies
         run: yarn install --immutable
       - name: Create k8s Kind Cluster
