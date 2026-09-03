@@ -260,7 +260,7 @@ class Client {
    * @param {Query | string} query - The query to execute.
    * @returns A promise that resolves to a QueryResult object.
    */
-  async query(query: Query | string): Promise<Iterator<QueryResult>> {
+  async query(query: Query | string, signal?: AbortSignal): Promise<Iterator<QueryResult>> {
     const req = typeof query === 'string' ? {query} : query;
     const headers: RawAxiosRequestHeaders = {
       [TRINO_USER_HEADER]: req.user,
@@ -277,10 +277,15 @@ class Client {
       url: '/v1/statement',
       data: req.query,
       headers: cleanHeaders(headers),
+      // Intentionally not passing the AbortSignal on this initial request to avoid a race condition where
+      // trino starts running the query and we never send a cancel for it
     };
-    return this.request<QueryResult>(requestConfig).then(
-      result => new Iterator(new QueryIterator(this, result))
-    );
+    const createQueryRes = await this.request<QueryResult>(requestConfig);
+    signal?.addEventListener('abort', () => {
+      this.cancel(createQueryRes.id);
+    });
+
+    return new Iterator(new QueryIterator(this, createQueryRes, signal));
   }
 
   /**
@@ -363,7 +368,8 @@ export class Iterator<T> implements AsyncIterableIterator<T> {
 export class QueryIterator implements AsyncIterableIterator<QueryResult> {
   constructor(
     private readonly client: Client,
-    private queryResult: QueryResult
+    private queryResult: QueryResult,
+    private readonly signal?: AbortSignal,
   ) {}
 
   [Symbol.asyncIterator](): AsyncIterableIterator<QueryResult> {
@@ -390,6 +396,7 @@ export class QueryIterator implements AsyncIterableIterator<QueryResult> {
 
     this.queryResult = await this.client.request<QueryResult>({
       url: this.queryResult.nextUri,
+      signal: this.signal,
     });
 
     const data = this.queryResult.data ?? [];
@@ -418,8 +425,8 @@ export class Trino {
    * @param query - The query to execute.
    * @returns A QueryIterator object.
    */
-  async query(query: Query | string): Promise<Iterator<QueryResult>> {
-    return this.client.query(query);
+  async query(query: Query | string, signal?: AbortSignal): Promise<Iterator<QueryResult>> {
+    return this.client.query(query, signal);
   }
 
   /**
