@@ -74,6 +74,38 @@ const data: QueryData[] = await iter
 More usage examples can be found in the
 [integration tests](https://github.com/trinodb/trino-js-client/blob/main/tests/it/client.spec.ts).
 
+## Projects using this client
+
+The following projects use this client to talk to Trino. They are a good place
+to see it applied to a real workload, beyond the examples in this repository,
+so each entry links to the code that calls the client.
+
+- [Lightdash](https://lightdash.com) — business intelligence and analytics,
+  using the client as its Trino warehouse connector.
+  [`TrinoWarehouseClient.ts`](https://github.com/lightdash/lightdash/blob/main/packages/warehouses/src/warehouseClients/TrinoWarehouseClient.ts)
+- [Malloy](https://www.malloydata.dev) — an open source language for describing
+  data relationships and transformations, in its Trino dialect connector.
+  [`packages/malloy-db-trino`](https://github.com/malloydata/malloy/tree/main/packages/malloy-db-trino)
+- [Beekeeper Studio](https://www.beekeeperstudio.io) — a cross-platform SQL
+  client and database manager.
+  [`trino.ts`](https://github.com/beekeeper-studio/beekeeper-studio/blob/master/apps/studio/src-commercial/backend/lib/db/clients/trino.ts)
+- [DBCode](https://dbcode.io) — a database editor for Visual Studio Code,
+  Cursor, and Windsurf. The extension source is not published, so only the
+  manifest is public.
+  [`dbcodeio/public`](https://github.com/dbcodeio/public)
+- [DBeagle](https://dbeagle.fyi) — a Visual Studio Code extension for SQL
+  exploration.
+  [`src/drivers/trino`](https://github.com/prasaddpathak/dbeagle/tree/master/src/drivers/trino)
+- [SQL Notebook Pro](https://github.com/kuzho/sqlnotebook-pro) — a Visual
+  Studio Code extension for SQL notebooks.
+  [`src/driver.ts`](https://github.com/kuzho/sqlnotebook-pro/blob/main/src/driver.ts)
+- [n8n-nodes-trino](https://github.com/Dmsrdnv/n8n-nodes-trino) — a community
+  node that queries Trino from an n8n workflow.
+  [`nodes/Trino`](https://github.com/Dmsrdnv/n8n-nodes-trino/tree/master/nodes/Trino)
+
+Using the client in your own project? Open a pull request and add it to the
+list.
+
 ## Build
 
 Use the following commands to build the project locally with your modifications,
