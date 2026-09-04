@@ -21,7 +21,11 @@ this project.
 - Node 24 or newer. This is what the tests run against, and what the `engines`
   field in `package.json` declares. Older versions may still work, but are not
   tested, and package managers that enforce `engines` refuse to install on them.
-- Trino 0.16x or newer.
+- Trino. The tests run against the latest public release, and against Trino
+  440 as an older reference point. Releases in between and since are very
+  likely to work, because the client speaks the [Trino client REST
+  API](https://trino.io/docs/current/develop/client-protocol.html), which
+  changes rarely.
 
 ## Install
 
