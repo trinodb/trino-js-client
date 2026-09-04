@@ -220,8 +220,9 @@ beyond a merged pull request that updates the version.
 1. Update the `version` field in `package.json` to the version you are about to
    release. Nothing else needs to change, since the lockfile records the
    workspace as `0.0.0-use.local` rather than the released version.
-2. Commit the change on a branch, with `Release trino-js-client <version>` as
-   the commit message, and open a pull request.
+2. Commit the change on a branch, using
+   `Release @trinodb/trino-js-client <version>` as the commit message, and open
+   a pull request.
 3. Merge the pull request once it is approved and the checks pass.
 
 Merging runs the `release` workflow, which compares the version in
