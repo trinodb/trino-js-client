@@ -17,3 +17,24 @@ jobs:
         run: yarn test:lint
       - name: Build
         run: yarn build
+
+  # Guards the "or newer" half of the Node claim in the README. Node 26
+  # becomes the active long term support release on 2026-10-28, so it is
+  # what consumers move to next. Lint and build only, since the Trino
+  # integration tests are covered by the IT tests workflow. Kept as its own
+  # job rather than a matrix on build, so the existing check name does not
+  # change.
+  build-newer-node:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "26.x"
+      - name: Install Dependencies
+        run: yarn install --immutable
+      - name: Lint
+        run: yarn test:lint
+      - name: Build
+        run: yarn build
