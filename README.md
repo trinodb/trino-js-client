@@ -18,8 +18,9 @@ this project.
 
 ## Requirements
 
-- Node 24 or newer. This is what the tests run against. Older and newer
-  versions may work, but are not tested.
+- Node 24 or newer. This is what the tests run against, and what the `engines`
+  field in `package.json` declares. Older versions may still work, but are not
+  tested, and package managers that enforce `engines` refuse to install on them.
 - Trino 0.16x or newer.
 
 ## Install
