@@ -19,3 +19,7 @@ docs
 .pnp.*
 
 node_modules
+
+# compat test artifacts
+tests/compat/candidate.tgz
+tests/compat/package-lock.json

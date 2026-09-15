@@ -28,3 +28,8 @@ jobs:
           kubectl -n trino-system port-forward svc/trino 8080:8080 > /dev/null &
           sleep 10 # give it a little bit more time to start
           yarn test:it --testTimeout=60000
+      - name: Downstream compatibility tests
+        run: |
+          kubectl -n trino-system port-forward svc/trino 8080:8080 > /dev/null &
+          sleep 10 # give the forward time to establish
+          yarn test:compat
