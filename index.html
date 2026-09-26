@@ -55,6 +55,36 @@ receiving new releases.</p>
 <h2 id="examples" class="tsd-anchor-link">Examples<a href="#examples" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>More usage examples can be found in the
 <a href="https://github.com/trinodb/trino-js-client/blob/main/tests/it/client.spec.ts">integration tests</a>.</p>
+<h2 id="projects-using-this-client" class="tsd-anchor-link">Projects using this client<a href="#projects-using-this-client" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>The following projects use this client to talk to Trino. They are a good place
+to see it applied to a real workload, beyond the examples in this repository,
+so each entry links to the code that calls the client.</p>
+<ul>
+<li><a href="https://lightdash.com">Lightdash</a> — business intelligence and analytics,
+using the client as its Trino warehouse connector.
+<a href="https://github.com/lightdash/lightdash/blob/main/packages/warehouses/src/warehouseClients/TrinoWarehouseClient.ts"><code>TrinoWarehouseClient.ts</code></a></li>
+<li><a href="https://www.malloydata.dev">Malloy</a> — an open source language for describing
+data relationships and transformations, in its Trino dialect connector.
+<a href="https://github.com/malloydata/malloy/tree/main/packages/malloy-db-trino"><code>packages/malloy-db-trino</code></a></li>
+<li><a href="https://www.beekeeperstudio.io">Beekeeper Studio</a> — a cross-platform SQL
+client and database manager.
+<a href="https://github.com/beekeeper-studio/beekeeper-studio/blob/master/apps/studio/src-commercial/backend/lib/db/clients/trino.ts"><code>trino.ts</code></a></li>
+<li><a href="https://dbcode.io">DBCode</a> — a database editor for Visual Studio Code,
+Cursor, and Windsurf. The extension source is not published, so only the
+manifest is public.
+<a href="https://github.com/dbcodeio/public"><code>dbcodeio/public</code></a></li>
+<li><a href="https://dbeagle.fyi">DBeagle</a> — a Visual Studio Code extension for SQL
+exploration.
+<a href="https://github.com/prasaddpathak/dbeagle/tree/master/src/drivers/trino"><code>src/drivers/trino</code></a></li>
+<li><a href="https://github.com/kuzho/sqlnotebook-pro">SQL Notebook Pro</a> — a Visual
+Studio Code extension for SQL notebooks.
+<a href="https://github.com/kuzho/sqlnotebook-pro/blob/main/src/driver.ts"><code>src/driver.ts</code></a></li>
+<li><a href="https://github.com/Dmsrdnv/n8n-nodes-trino">n8n-nodes-trino</a> — a community
+node that queries Trino from an n8n workflow.
+<a href="https://github.com/Dmsrdnv/n8n-nodes-trino/tree/master/nodes/Trino"><code>nodes/Trino</code></a></li>
+</ul>
+<p>Using the client in your own project? Open a pull request and add it to the
+list.</p>
 <h2 id="build" class="tsd-anchor-link">Build<a href="#build" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>Use the following commands to build the project locally with your modifications,
 and in preparation to contribute a pull request.</p>
@@ -140,8 +170,9 @@ beyond a merged pull request that updates the version.</p>
 <li>Update the <code>version</code> field in <code>package.json</code> to the version you are about to
 release. Nothing else needs to change, since the lockfile records the
 workspace as <code>0.0.0-use.local</code> rather than the released version.</li>
-<li>Commit the change on a branch, with <code>Release trino-js-client &lt;version&gt;</code> as
-the commit message, and open a pull request.</li>
+<li>Commit the change on a branch, using
+<code>Release @trinodb/trino-js-client &lt;version&gt;</code> as the commit message, and open
+a pull request.</li>
 <li>Merge the pull request once it is approved and the checks pass.</li>
 </ol>
 <p>Merging runs the <code>release</code> workflow, which compares the version in
@@ -194,6 +225,7 @@ supported continuous integration environment.</p>
 <li><a href="#iterate-through-the-query-results"><span>Iterate through the query results</span></a></li>
 <li><a href="#alternative-map-and-aggregate-the-data"><span>Alternative: map and aggregate the data</span></a></li></ul></li>
 <li><a href="#examples"><span>Examples</span></a></li>
+<li><a href="#projects-using-this-client"><span>Projects using this client</span></a></li>
 <li><a href="#build"><span>Build</span></a></li>
 <li><a href="#integration-test"><span>Integration test</span></a></li>
 <li><a href="#contributing"><span>Contributing</span></a></li>
