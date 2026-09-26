@@ -24,9 +24,16 @@ this project.</p>
 </ul>
 <h2 id="requirements" class="tsd-anchor-link">Requirements<a href="#requirements" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <ul>
-<li>Node 24 or newer. This is what the tests run against. Older and newer
-versions may work, but are not tested.</li>
-<li>Trino 0.16x or newer.</li>
+<li>Node 24 or newer. This is what the tests run against, and what the <code>engines</code>
+field in <code>package.json</code> declares. The build and lint checks also run against
+Node 26, which becomes the active long term support release on 2026-10-28.
+Older versions may still work, but are not tested, and package managers that
+enforce <code>engines</code> refuse to install on them.</li>
+<li>Trino. The tests run against the latest public release, and against Trino
+440 as an older reference point. Releases in between and since are very
+likely to work, because the client speaks the <a href="https://trino.io/docs/current/develop/client-protocol.html">Trino client REST
+API</a>, which
+changes rarely.</li>
 </ul>
 <h2 id="install" class="tsd-anchor-link">Install<a href="#install" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p><code>npm install @trinodb/trino-js-client</code> or <code>yarn add @trinodb/trino-js-client</code></p>
