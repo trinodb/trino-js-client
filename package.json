@@ -1,5 +1,5 @@
 {
-  "version": "0.3.2",
+  "version": "1.0.0",
   "name": "@trinodb/trino-js-client",
   "description": "Trino client library",
   "author": {
