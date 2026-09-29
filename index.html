@@ -107,11 +107,26 @@ and in preparation to contribute a pull request.</p>
 <pre><code class="shell"><span class="hl-5">yarn</span><span class="hl-1"> </span><span class="hl-6">test:lint</span>
 </code><button type="button">Copy</button></pre>
 
+<p>Check formatting:</p>
+<pre><code class="shell"><span class="hl-5">yarn</span><span class="hl-1"> </span><span class="hl-6">prettier:check</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Reformat anything it reports:</p>
+<pre><code class="shell"><span class="hl-5">yarn</span><span class="hl-1"> </span><span class="hl-6">prettier:format</span>
+</code><button type="button">Copy</button></pre>
+
 <p>Build:</p>
 <pre><code class="shell"><span class="hl-5">yarn</span><span class="hl-1"> </span><span class="hl-6">build</span>
 </code><button type="button">Copy</button></pre>
 
 <p>A successful build run does not produce any message on the terminal.</p>
+<p>All three run together with <code>yarn check</code>, which is what the build workflow
+does. The formatting check is enforced there, so a pull request that has not
+been formatted fails before it is reviewed.</p>
+<p>The Prettier configuration is shared with the other Trino JavaScript codebases,
+<a href="https://github.com/trinodb/trino-query-ui">trino-query-ui</a> and both web UIs in
+<a href="https://github.com/trinodb/trino">trino</a>, and so is the choice to check only
+the TypeScript sources. Change it in all of them or in none.</p>
 <h2 id="integration-test" class="tsd-anchor-link">Integration test<a href="#integration-test" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>Integration tests run against a Trino server running on your workstation.</p>
 <p>Requirements:</p>
