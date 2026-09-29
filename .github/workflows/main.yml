@@ -13,6 +13,8 @@ jobs:
           node-version: "24.x"
       - name: Install Dependencies
         run: yarn install --immutable
+      - name: Prettier
+        run: yarn prettier:check
       - name: Lint
         run: yarn test:lint
       - name: Build
@@ -34,6 +36,8 @@ jobs:
           node-version: "26.x"
       - name: Install Dependencies
         run: yarn install --immutable
+      - name: Prettier
+        run: yarn prettier:check
       - name: Lint
         run: yarn test:lint
       - name: Build
