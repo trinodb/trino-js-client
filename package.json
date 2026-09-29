@@ -58,6 +58,9 @@
     "test:it": "jest --testPathPatterns tests/it",
     "test:compat": "bash tests/compat/run.sh",
     "test:lint": "eslint . --flag unstable_ts_config",
+    "prettier:check": "prettier --check \"./{src,tests}/**/*.ts\"",
+    "prettier:format": "prettier --write \"./{src,tests}/**/*.ts\"",
+    "check": "yarn test:lint && yarn prettier:check && yarn build",
     "publish": "yarn build && yarn npm publish"
   }
 }

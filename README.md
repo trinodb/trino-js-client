@@ -135,6 +135,18 @@ Lint the source code:
 yarn test:lint
 ```
 
+Check formatting:
+
+```shell
+yarn prettier:check
+```
+
+Reformat anything it reports:
+
+```shell
+yarn prettier:format
+```
+
 Build:
 
 ```shell
@@ -142,6 +154,15 @@ yarn build
 ```
 
 A successful build run does not produce any message on the terminal.
+
+All three run together with `yarn check`, which is what the build workflow
+does. The formatting check is enforced there, so a pull request that has not
+been formatted fails before it is reviewed.
+
+The Prettier configuration is shared with the other Trino JavaScript codebases,
+[trino-query-ui](https://github.com/trinodb/trino-query-ui) and both web UIs in
+[trino](https://github.com/trinodb/trino), and so is the choice to check only
+the TypeScript sources. Change it in all of them or in none.
 
 ## Integration test
 
