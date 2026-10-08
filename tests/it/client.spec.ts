@@ -53,6 +53,50 @@ describe('trino', () => {
         expect(info.state).toBe('FAILED')
     })
 
+    test.concurrent('abort running query', async () => {
+        const trino = Trino.create({
+            catalog: 'tpcds',
+            schema: 'sf100000',
+            auth: new BasicAuth('test'),
+        })
+        const controller = new AbortController()
+        const query = await trino.query(allCustomerQuery, { signal: controller.signal })
+        const qr = await query.next()
+
+        const reason = new Error('aborted by test')
+        controller.abort(reason)
+        await expect(query.next()).rejects.toBe(reason)
+
+        const info = await trino.queryInfo(qr.value.id)
+        expect(info.state).toBe('FAILED')
+    })
+
+    test.concurrent('abort while query is submitting', async () => {
+        const trino = Trino.create({
+            catalog: 'tpcds',
+            schema: 'sf100000',
+            auth: new BasicAuth('test'),
+        })
+        const controller = new AbortController()
+        const query = trino.query(allCustomerQuery, { signal: controller.signal })
+
+        const reason = new Error('aborted by test')
+        controller.abort(reason)
+        await expect(query).rejects.toBe(reason)
+    })
+
+    test.concurrent('abort before submitting', async () => {
+        const trino = Trino.create({
+            catalog: 'tpcds',
+            schema: 'sf100000',
+            auth: new BasicAuth('test'),
+        })
+        const reason = new Error('aborted by test')
+        const signal = AbortSignal.abort(reason)
+
+        await expect(trino.query(allCustomerQuery, { signal })).rejects.toBe(reason)
+    })
+
     test.concurrent('get query info', async () => {
         const trino = Trino.create({
             catalog: 'tpcds',
