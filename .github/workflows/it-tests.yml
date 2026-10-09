@@ -16,7 +16,7 @@ jobs:
       - name: Install Dependencies
         run: yarn install --immutable
       - name: Create k8s Kind Cluster
-        uses: helm/kind-action@v1.15.0
+        uses: helm/kind-action@v1.15.1
         with:
           cluster_name: trino
       - name: Deploy trino
@@ -62,7 +62,7 @@ jobs:
       - name: Install Dependencies
         run: yarn install --immutable
       - name: Create k8s Kind Cluster
-        uses: helm/kind-action@v1.15.0
+        uses: helm/kind-action@v1.15.1
         with:
           cluster_name: trino
       - name: Deploy trino
