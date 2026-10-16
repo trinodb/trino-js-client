@@ -77,6 +77,19 @@ const data: QueryData[] = await iter
   .fold<QueryData[]>([], (row, acc) => [...acc, ...row]);
 ```
 
+### Cancel a query with an AbortSignal
+
+```typescript
+const controller = new AbortController();
+const iter: Iterator<QueryResult> = await trino.query(
+  'select * from customer',
+  {signal: controller.signal}
+);
+
+// Cancels the query on the server. A pending next() rejects with the abort reason.
+controller.abort();
+```
+
 ## Examples
 
 More usage examples can be found in the
