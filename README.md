@@ -77,6 +77,35 @@ const data: QueryData[] = await iter
   .fold<QueryData[]>([], (row, acc) => [...acc, ...row]);
 ```
 
+### Trino header names
+
+The names of the Trino protocol headers are exported, so code that sets or
+reads one does not have to repeat the string. Sending client tags, for
+example, uses the header the client already knows about:
+
+```typescript
+import { TRINO_CLIENT_TAGS_HEADER } from '@trinodb/trino-js-client'
+
+const iter = await trino.query({
+    query: 'select * from customer limit 100',
+    extraHeaders: { [TRINO_CLIENT_TAGS_HEADER]: 'team=analytics,env=prod' },
+})
+```
+
+Exported alongside it are `TRINO_HEADER_PREFIX`,
+`TRINO_PREPARED_STATEMENT_HEADER`, `TRINO_ADDED_PREPARE_HEADER`,
+`TRINO_USER_HEADER`, `TRINO_SOURCE_HEADER`, `TRINO_CATALOG_HEADER`,
+`TRINO_SCHEMA_HEADER`, `TRINO_SESSION_HEADER`, `TRINO_SET_CATALOG_HEADER`,
+`TRINO_SET_SCHEMA_HEADER`, `TRINO_SET_PATH_HEADER`,
+`TRINO_SET_SESSION_HEADER`, `TRINO_CLEAR_SESSION_HEADER`,
+`TRINO_SET_ROLE_HEADER`, and `TRINO_EXTRA_CREDENTIAL_HEADER`, along with the
+`DEFAULT_SERVER`, `DEFAULT_SOURCE`, and `DEFAULT_USER` values the client
+falls back to.
+
+Only the headers the client itself uses are exported. The Trino client
+protocol defines more, and any of them can still be passed as a plain string
+through `extraHeaders`.
+
 ## Examples
 
 More usage examples can be found in the

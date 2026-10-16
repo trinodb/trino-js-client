@@ -22,6 +22,7 @@ import {
     Query,
     ConnectionOptions,
     SecureContextOptions,
+    TRINO_CLIENT_TAGS_HEADER,
 } from '@trinodb/trino-js-client'
 
 type Check = { name: string; ok: boolean; detail: string }
@@ -193,10 +194,17 @@ const main = async () => {
     // Lightdash is the only consumer sending extraHeaders, as client tags on
     // the query object. Malloy sets extraHeaders on its Presto client, not on
     // this one, and Beekeeper sends no extra headers at all.
+    //
+    // Uses the exported header name rather than a literal, so this also proves
+    // the constant is reachable from the packed tarball and still spells the
+    // header the way Trino expects.
     await run('lightdash: extraHeaders client tags on the query object', async () => {
+        if (TRINO_CLIENT_TAGS_HEADER !== 'X-Trino-Client-Tags') {
+            throw new Error(`the exported name is '${TRINO_CLIENT_TAGS_HEADER}'`)
+        }
         const tagged: Query = {
             query: 'select 1 as tagged',
-            extraHeaders: { 'X-Trino-Client-Tags': 'harness=true,source=compat' },
+            extraHeaders: { [TRINO_CLIENT_TAGS_HEADER]: 'harness=true,source=compat' },
         }
         const iter = await trino.query(tagged)
         let rows = 0
