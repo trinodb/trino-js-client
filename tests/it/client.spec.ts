@@ -1,4 +1,4 @@
-import { BasicAuth, QueryData, Trino } from '../../src'
+import { BasicAuth, QueryData, Trino, TrinoError } from '../../src'
 
 const allCustomerQuery = 'select * from customer'
 const limit = 1
@@ -8,6 +8,7 @@ const prepareListCustomerQuery = 'prepare list_customers from select * from cust
 const listCustomersQuery = `execute list_customers using ${limit}`
 const prepareListSalesQuery = 'prepare list_sales from select * from web_sales limit ?'
 const listSalesQuery = `execute list_sales using ${limit}`
+const unknownQueryId = '20260101_000000_00000_aaaaa'
 
 describe('trino', () => {
     test.concurrent('exhaust query results', async () => {
@@ -157,5 +158,38 @@ describe('trino', () => {
         const salesIter = await trino.query(listSalesQuery)
         const sales = await salesIter.fold<QueryData[]>([], (row, acc) => [...acc, ...(row.data ?? [])])
         expect(sales).toHaveLength(limit)
+    })
+
+    test.concurrent('cancel handles empty response body', async () => {
+        const trino = Trino.create({
+            catalog: 'tpcds',
+            schema: 'sf100000',
+            auth: new BasicAuth('test'),
+        })
+        const query = await trino.query(allCustomerQuery)
+        const qr = await query.next()
+
+        await expect(trino.cancel(qr.value.id)).resolves.toEqual({ id: qr.value.id })
+    })
+
+    test.concurrent('non-2xx response throws TrinoError', async () => {
+        const trino = Trino.create({ auth: new BasicAuth('test') })
+
+        const error = await trino.queryInfo(unknownQueryId).catch((e: unknown) => e)
+        expect(error).toBeInstanceOf(TrinoError)
+        expect(error).toMatchObject({ name: 'TrinoError', status: 410 })
+    })
+
+    test.concurrent('ssl option loads the undici transport', async () => {
+        const trino = Trino.create({
+            catalog: 'tpcds',
+            schema: 'sf100000',
+            auth: new BasicAuth('test'),
+            ssl: { rejectUnauthorized: true },
+        })
+
+        const iter = await trino.query(singleCustomerQuery)
+        const data = await iter.fold<QueryData[]>([], (row, acc) => [...acc, ...(row.data ?? [])])
+        expect(data).toHaveLength(limit)
     })
 })

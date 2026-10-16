@@ -1,5 +1,3 @@
-import axios, { AxiosRequestConfig, RawAxiosRequestHeaders } from 'axios'
-import * as https from 'https'
 import * as tls from 'tls'
 
 const DEFAULT_SERVER = 'http://localhost:8080'
@@ -155,14 +153,36 @@ export type Query = {
     extraHeaders?: RequestHeaders
 }
 
+type TrinoHeaders = Record<string, string | undefined>
+
+type RequestConfig = {
+    url: string
+    method?: string
+    headers?: TrinoHeaders
+    body?: string
+}
+
+/**
+ * Error thrown when the Trino server responds with a non-2xx HTTP status.
+ */
+export class TrinoError extends Error {
+    constructor(
+        readonly status: number,
+        readonly body: string
+    ) {
+        super(`Trino ${status}: ${body}`)
+        this.name = 'TrinoError'
+    }
+}
+
 /**
  * It takes a Headers object and returns a new object with the same keys, but only the values that are
  * truthy
- * @param {RawAxiosRequestHeaders} headers - RawAxiosRequestHeaders - The headers object to be sanitized.
+ * @param {TrinoHeaders} headers - The headers object to be sanitized.
  * @returns An object with the key-value pairs of the headers object, but only if the value is truthy.
  */
-const cleanHeaders = (headers: RawAxiosRequestHeaders) => {
-    const sanitizedHeaders: RawAxiosRequestHeaders = {}
+const cleanHeaders = (headers: TrinoHeaders): Record<string, string> => {
+    const sanitizedHeaders: Record<string, string> = {}
     for (const [key, value] of Object.entries(headers)) {
         if (value) {
             sanitizedHeaders[key] = value
@@ -171,22 +191,54 @@ const cleanHeaders = (headers: RawAxiosRequestHeaders) => {
     return sanitizedHeaders
 }
 
-/* It's a wrapper around the Axios library that adds some Trino specific headers to the requests */
+type TransportRequest = {
+    method: string
+    headers: Record<string, string>
+    body?: string
+}
+
+type TransportResponse = {
+    ok: boolean
+    status: number
+    headers: { get(name: string): string | null; has(name: string): boolean }
+    text(): Promise<string>
+}
+
+type Transport = (url: URL, request: TransportRequest) => Promise<TransportResponse>
+
+/**
+ * Creates the function that sends HTTP requests. Without TLS options it uses the global fetch. TLS options
+ * need an undici dispatcher, so undici is loaded on first use and its own fetch is used with it, keeping
+ * the fetch and the dispatcher from the same undici version.
+ * @param ssl - The TLS options, if any.
+ * @returns The transport function.
+ */
+const createTransport = (ssl?: SecureContextOptions): Transport => {
+    if (!ssl) {
+        return (url, request) => fetch(url, request)
+    }
+
+    let undici: Promise<Transport> | undefined
+    return async (url, request) => {
+        undici ??= import('undici').then(({ Agent, fetch }) => {
+            const dispatcher = new Agent({ connect: ssl })
+            return (url: URL, request: TransportRequest) => fetch(url, { ...request, dispatcher })
+        })
+        return (await undici)(url, request)
+    }
+}
+
+/* It's a wrapper around fetch that adds some Trino specific headers to the requests */
 class Client {
     private constructor(
-        private readonly clientConfig: AxiosRequestConfig,
+        private readonly baseURL: string,
+        private readonly transport: Transport,
+        private headers: TrinoHeaders,
         private readonly options: ConnectionOptions
     ) {}
 
     static create(options: ConnectionOptions): Client {
-        const agent = new https.Agent(options.ssl ?? {})
-
-        const clientConfig: AxiosRequestConfig = {
-            baseURL: options.server ?? DEFAULT_SERVER,
-            httpsAgent: agent,
-        }
-
-        const headers: RawAxiosRequestHeaders = {
+        const headers: TrinoHeaders = {
             [TRINO_USER_HEADER]: DEFAULT_USER,
             [TRINO_SOURCE_HEADER]: options.source ?? DEFAULT_SOURCE,
             [TRINO_CATALOG_HEADER]: options.catalog,
@@ -198,59 +250,62 @@ class Client {
 
         if (options.auth && options.auth.type === 'basic') {
             const basic: BasicAuth = <BasicAuth>options.auth
-            clientConfig.auth = {
-                username: basic.username,
-                password: basic.password ?? '',
-            }
-
+            const token = Buffer.from(`${basic.username}:${basic.password ?? ''}`).toString('base64')
+            headers['Authorization'] = `Basic ${token}`
             headers[TRINO_USER_HEADER] = basic.username
         }
 
-        clientConfig.headers = cleanHeaders(headers)
-
-        return new Client(clientConfig, options)
+        return new Client(
+            options.server ?? DEFAULT_SERVER,
+            createTransport(options.ssl),
+            cleanHeaders(headers),
+            options
+        )
     }
 
     /**
      * Generic method to send a request to the server.
-     * @param cfg - AxiosRequestConfig<any>
+     * @param cfg - The request configuration.
      * @returns The response data.
+     * @throws {TrinoError} If the server responds with a non-2xx HTTP status.
      */
-    async request<T>(cfg: AxiosRequestConfig<unknown>): Promise<T> {
-        return axios
-            .create(this.clientConfig)
-            .request(cfg)
-            .then((response) => {
-                const reqHeaders: RawAxiosRequestHeaders = this.clientConfig.headers ?? {}
-                const respHeaders = response.headers
-                reqHeaders[TRINO_CATALOG_HEADER] =
-                    respHeaders[TRINO_SET_CATALOG_HEADER.toLowerCase()] ??
-                    reqHeaders[TRINO_CATALOG_HEADER] ??
-                    this.options.catalog
-                reqHeaders[TRINO_SCHEMA_HEADER] =
-                    respHeaders[TRINO_SET_SCHEMA_HEADER.toLowerCase()] ??
-                    reqHeaders[TRINO_SCHEMA_HEADER] ??
-                    this.options.schema
-                reqHeaders[TRINO_SESSION_HEADER] =
-                    respHeaders[TRINO_SET_SESSION_HEADER.toLowerCase()] ??
-                    reqHeaders[TRINO_SESSION_HEADER] ??
-                    encodeAsString(this.options.session ?? {})
+    async request<T>(cfg: RequestConfig): Promise<T> {
+        const response = await this.transport(new URL(cfg.url, this.baseURL), {
+            method: cfg.method ?? 'GET',
+            headers: cleanHeaders({ ...this.headers, ...(cfg.headers ?? {}) }),
+            body: cfg.body,
+        })
+        // Trino answers some requests, such as DELETE /v1/query/{id}, with an empty body
+        const text = await response.text()
+        if (!response.ok) {
+            throw new TrinoError(response.status, text)
+        }
 
-                if (TRINO_CLEAR_SESSION_HEADER.toLowerCase() in respHeaders) {
-                    reqHeaders[TRINO_SESSION_HEADER] = undefined
-                }
+        const reqHeaders: TrinoHeaders = { ...this.headers }
+        const respHeaders = response.headers
+        reqHeaders[TRINO_CATALOG_HEADER] =
+            respHeaders.get(TRINO_SET_CATALOG_HEADER) ?? reqHeaders[TRINO_CATALOG_HEADER] ?? this.options.catalog
+        reqHeaders[TRINO_SCHEMA_HEADER] =
+            respHeaders.get(TRINO_SET_SCHEMA_HEADER) ?? reqHeaders[TRINO_SCHEMA_HEADER] ?? this.options.schema
+        reqHeaders[TRINO_SESSION_HEADER] =
+            respHeaders.get(TRINO_SET_SESSION_HEADER) ??
+            reqHeaders[TRINO_SESSION_HEADER] ??
+            encodeAsString(this.options.session ?? {})
 
-                if (TRINO_ADDED_PREPARE_HEADER.toLowerCase() in respHeaders) {
-                    const prep = reqHeaders[TRINO_PREPARED_STATEMENT_HEADER]
+        if (respHeaders.has(TRINO_CLEAR_SESSION_HEADER)) {
+            reqHeaders[TRINO_SESSION_HEADER] = undefined
+        }
 
-                    reqHeaders[TRINO_PREPARED_STATEMENT_HEADER] =
-                        (prep ? prep + ',' : '') + respHeaders[TRINO_ADDED_PREPARE_HEADER.toLowerCase()]
-                }
+        if (respHeaders.has(TRINO_ADDED_PREPARE_HEADER)) {
+            const prep = reqHeaders[TRINO_PREPARED_STATEMENT_HEADER]
 
-                this.clientConfig.headers = cleanHeaders(reqHeaders)
+            reqHeaders[TRINO_PREPARED_STATEMENT_HEADER] =
+                (prep ? prep + ',' : '') + respHeaders.get(TRINO_ADDED_PREPARE_HEADER)
+        }
 
-                return response.data
-            })
+        this.headers = cleanHeaders(reqHeaders)
+
+        return (text ? JSON.parse(text) : undefined) as T
     }
 
     /**
@@ -260,7 +315,7 @@ class Client {
      */
     async query(query: Query | string): Promise<Iterator<QueryResult>> {
         const req = typeof query === 'string' ? { query } : query
-        const headers: RawAxiosRequestHeaders = {
+        const headers: TrinoHeaders = {
             [TRINO_USER_HEADER]: req.user,
             [TRINO_CATALOG_HEADER]: req.catalog,
             [TRINO_SCHEMA_HEADER]: req.schema,
@@ -268,10 +323,10 @@ class Client {
             [TRINO_EXTRA_CREDENTIAL_HEADER]: encodeAsString(req.extraCredential ?? {}),
             ...(req.extraHeaders ?? {}),
         }
-        const requestConfig = {
+        const requestConfig: RequestConfig = {
             method: 'POST',
             url: '/v1/statement',
-            data: req.query,
+            body: req.query,
             headers: cleanHeaders(headers),
         }
         return this.request<QueryResult>(requestConfig).then((result) => new Iterator(new QueryIterator(this, result)))
@@ -381,7 +436,7 @@ export class QueryIterator implements AsyncIterableIterator<QueryResult> {
         }
 
         this.queryResult = await this.client.request<QueryResult>({
-            url: this.queryResult.nextUri,
+            url: this.queryResult.nextUri!,
         })
 
         const data = this.queryResult.data ?? []
